@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Treino CSA</title>
+<meta name="description" content="Treino para o exame ServiceNow Certified System Administrator: revisões espaçadas, simulados, labs e progresso.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/gate.css">
+</head>
+<body class="gated">
+<div class="gate" id="gate" hidden></div>
+<header class="top" id="top">
+  <div class="top-in">
+    <a class="brand" href="#hoje"><span class="logo" aria-hidden="true">CSA</span><span><b data-en="CSA Trainer">Treino CSA</b><small>ZURICH · 60 Q · 90 MIN</small></span></a>
+    <nav class="tabs" aria-label="Vistas" data-en-aria="Views">
+      <span class="grp" data-en="Study">Estudar</span>
+      <a href="#hoje" data-tab="hoje"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg><span data-en="Today">Hoje</span></a>
+      <a href="#treino" data-tab="treino"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/></svg><span data-en="Practice">Treino</span></a>
+      <a href="#montar" data-tab="montar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/></svg><span data-en="Build a session">Montar sessão</span></a>
+      <a href="#simulado" data-tab="simulado"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg><span data-en="Practice exam">Simulado</span></a>
+      <span class="grp" data-en="Analyse">Analisar</span>
+      <a href="#progresso" data-tab="progresso"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="m5 15 4.5-4.5 3.5 3L19 7"/></svg><span data-en="Progress">Progresso</span></a>
+      <a href="#ranking" data-tab="ranking"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-5"/></svg><span data-en="Ranking">Ranking</span></a>
+      <span class="grp" data-en="Prepare">Preparar</span>
+      <a href="#plano" data-tab="plano"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M4 10h16"/></svg><span data-en="Plan">Plano</span></a>
+      <a href="#exame" data-tab="exame"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="m9 13.5-1.5 7L12 18l4.5 2.5-1.5-7"/></svg><span data-en="The exam">O exame</span></a>
+      <a href="#labs" data-tab="labs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 3.5h5M10.5 3.5v6L5 19a1 1 0 0 0 .9 1.5h12.2A1 1 0 0 0 19 19l-5.5-9.5v-6"/><path d="M7.5 15h9"/></svg><span data-en="Labs">Labs</span></a>
+    </nav>
+    <div class="side-foot">
+      <button class="pomo" id="pomoBtn" data-act="pomopop" aria-expanded="false" aria-controls="pop" data-mode="idle" data-run="0"><span class="pd"></span><span id="pomoTxt">Pomodoro</span></button>
+      <div class="row2"><div class="seg langseg" role="group" aria-label="Idioma" id="langSeg"><button data-act="lang" data-v="pt" aria-pressed="true" lang="pt-PT">PT</button><button data-act="lang" data-v="en" aria-pressed="false" lang="en">EN</button></div><span id="themeLbl" class="tl2">Tema claro</span><button class="themebtn" data-act="theme" id="themeBtn" aria-label="Mudar para tema escuro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button></div>
+    </div>
+  </div>
+</header>
+
+<div class="pop" id="pop" role="dialog" aria-label="Temporizador Pomodoro" data-en-aria="Pomodoro timer" hidden></div>
+
+<div class="app-main">
+<main class="wrap" id="view">
+  <div class="vh"><div><h1 data-en="Today">Hoje</h1><p data-en="Loading the question bank…">A carregar o banco de questões…</p></div></div>
+  <div class="empty"><b data-en="Getting your session ready">A preparar a tua sessão</b></div>
+</main>
+</div>
+
+<div class="veil" id="veil" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>window.CSA_WEB = 1;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/gate.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+body.gated .top,
+body.gated .app-main,
+body.gated .pop,
+body.gated .veil {
+  display: none !important;
+}
+
+.gate {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+
+.gate-card {
+  width: min(420px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 28px 26px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gate-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gate-top .logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--lime);
+  color: var(--lime-ink);
+  display: grid;
+  place-items: center;
+  font: 700 12px/1 var(--display);
+}
+
+.gate-top b {
+  font: 700 18px/1.1 var(--display);
+}
+
+.gate-top .langseg {
+  margin-left: auto;
+}
+
+.gate-card h2 {
+  font: 600 20px/1.2 var(--display);
+  margin: 4px 0 0;
+}
+
+.gate-card p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gate-tag {
+  font-size: 13.5px;
+}
+
+.gate-msg {
+  background: var(--sunk);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink) !important;
+}
+
+.gate-tabs {
+  align-self: flex-start;
+}
+
+.gate form {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gate .field input {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.gate .field input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.gate .btn.big {
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.gate-help {
+  font-size: 12.5px !important;
+  color: var(--ink-3) !important;
+  margin: -8px 0 6px !important;
+}
+
+.gate-alt {
+  align-self: flex-start;
+}
+
+.gate-loading {
+  align-items: center;
+  text-align: center;
+  padding: 36px 26px;
+}
+
+.gate-loading .spin {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  animation: gate-spin 0.9s linear infinite;
+}
+
+@keyframes gate-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.side-foot .acct {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.side-foot .acct .who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-foot .acct .who i {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font: 600 11px/1 var(--mono);
+  font-style: normal;
+  color: var(--ink);
+}
+
+@media (max-width: 999px) {
+  .side-foot .acct .who {
+    display: none;
+  }
+  .side-foot .acct {
+    display: flex;
+  }
+}
