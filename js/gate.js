@@ -458,11 +458,12 @@
     return m || t("genericError");
   }
 
-  function hasAccess() {
+  function hasAccess(uid) {
     return sb
       .from("entitlements")
       .select("cert")
       .eq("cert", CERT)
+      .eq("user_id", uid)
       .maybeSingle()
       .then(function (r) {
         if (r.error) throw r.error;
@@ -497,7 +498,9 @@
           })
       : Promise.resolve();
     return step
-      .then(hasAccess)
+      .then(function () {
+        return hasAccess(uid);
+      })
       .then(function (ok) {
         if (!ok) {
           showUnlock();
