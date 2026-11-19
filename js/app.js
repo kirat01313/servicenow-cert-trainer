@@ -947,6 +947,14 @@ function readiness(ds){var s=0;D.domains.forEach(function(d){var o=ds[d.id];s+=d
 function streak(){var n=0,t=Date.now();if(!(S.days[dkey(t)]||{}).q)t-=DAY;while((S.days[dkey(t)]||{}).q){n++;t-=DAY;}return n;}
 function greet(){var h=new Date().getHours();return h<12?TL("Bom dia","Good morning"):h<20?TL("Boa tarde","Good afternoon"):TL("Boa noite","Good evening");}
 
+/* aviso para quem chega com a conta vazia: trazer o progresso do ficheiro offline */
+function importHintHTML(){
+  if(!WEB||Object.keys(S.p).length)return "";
+  return '<section class="panel g-wide imphint"><p class="lbl">'+TL("Já estudaste noutra versão?","Studied in another version?")+'</p><p class="small muted" style="margin:0 0 12px;max-width:70ch">'+
+    TL("Se usavas o ficheiro <b>Treino-CSA.html</b> ou a app antiga, abre-o no mesmo browser e vai a <b>Progresso › Dados › Exportar progresso</b>. Depois importa aqui o ficheiro que descarregaste: o progresso passa para a tua conta.",
+       "If you used the <b>Treino-CSA.html</b> file or the old app, open it in the same browser and go to <b>Progress › Data › Export progress</b>. Then import the downloaded file here: your progress moves to your account.")+
+    '</p>'+dataPanelHTML()+'</section>';
+}
 function vHoje(){
   var due=dueList().length, fresh=freshList().length, quota=Math.max(0,S.cfg.newPerDay-(day().nw||0)), sm=smartIds(), total=sm.length;
   var d=day(), ds=domStats(), rd=readiness(ds), last=S.exams[S.exams.length-1], cs=confScore(), dl=daysLeft();
@@ -976,7 +984,7 @@ function vHoje(){
     TL('<li><span class="n">5</span><span><b>Pausas a horas certas.</b> Pausas fixas ao estilo Pomodoro deram melhor humor e rendimento num estudo com 87 estudantes (<a href="https://bpspsychub.onlinelibrary.wiley.com/doi/10.1111/bjep.12593" target="_blank" rel="noopener">Biwer et al., 2023</a>). Usa o ritmo que te mantiver a trabalhar.</span></li>','<li><span class="n">5</span><span><b>Breaks at fixed times.</b> Fixed Pomodoro-style breaks gave better mood and performance in a study of 87 students (<a href="https://bpspsychub.onlinelibrary.wiley.com/doi/10.1111/bjep.12593" target="_blank" rel="noopener">Biwer et al., 2023</a>). Use whichever rhythm keeps you working.</span></li>')+
     TL('<li><span class="n">6</span><span><b>Treinar nas condições do exame.</b> O simulado segue o blueprint oficial: 60 questões, 90 minutos, distribuição por domínio e escolha múltipla sem crédito parcial.</span></li>','<li><span class="n">6</span><span><b>Practise under exam conditions.</b> The practice exam follows the official blueprint: 60 questions, 90 minutes, the domain distribution and multiple choice with no partial credit.</span></li>')+
     "</ol></details></section>";
-  return '<div class="vh"><div><h1>'+greet()+'</h1><p>'+new Date().toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long"})+(streak()>1?" · "+streak()+TL(" dias seguidos"," days in a row"):"")+" · "+d.q+TL(" respondidas hoje · "," answered today · ")+d.pomo+' pomodoros</p></div></div><div class="stack"><div class="grid3">'+hero+gauge+"</div>"+kp+'<div class="grid3">'+dom+cd+"</div>"+'<div class="grid3">'+ex+meth+'</div></div><p class="syncnote" data-sync></p>';
+  return '<div class="vh"><div><h1>'+greet()+'</h1><p>'+new Date().toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long"})+(streak()>1?" · "+streak()+TL(" dias seguidos"," days in a row"):"")+" · "+d.q+TL(" respondidas hoje · "," answered today · ")+d.pomo+' pomodoros</p></div></div><div class="stack">'+importHintHTML()+'<div class="grid3">'+hero+gauge+"</div>"+kp+'<div class="grid3">'+dom+cd+"</div>"+'<div class="grid3">'+ex+meth+'</div></div><p class="syncnote" data-sync></p>';
 }
 
 /* rever questões já respondidas nesta sessão (só leitura: a resposta já foi registada) */
