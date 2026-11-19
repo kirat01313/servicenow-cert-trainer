@@ -1,0 +1,10 @@
+# Local Supabase settings (the deploy writes its own from GitHub Secrets)
+js/config.js
+.env
+
+# Course content: questions, notes and book excerpts live only in Supabase
+content/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
