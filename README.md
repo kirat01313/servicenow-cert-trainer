@@ -17,10 +17,12 @@ The site is bilingual (European Portuguese and English) and works on phones and 
   and new questions, mixed across the blueprint domains by their exam weight.
 - **Practice** – review only, confident mistakes, questions you got wrong, new questions or the
   whole bank. You say how sure you are before seeing the answer.
-- **Build a session** – pick a domain, topic or course module, how many questions and the format
-  (practice with answers or timed, exam-style).
+- **Build a session** – pick a domain, topic or course module, how many questions and the format:
+  practice with answers, timed exam-style, or **sudden death** (every question you picked, and the
+  challenge ends at the 18th mistake).
 - **Practice exam** – 60 questions in 90 minutes with the official domain weights, no topic hints,
-  questions marked for review, and a full report at the end (domains, pace, wrong answers).
+  questions marked for review, a *Finish* button on the last question and a full report at the end
+  (domains, pace, wrong answers).
 - **Progress** – KPIs with targets and trends, a confidence index from 0 to 10, an evolution chart
   with a projection to the exam date, weak topics and the review calendar.
 - **Question ranking** – the questions you miss most and get right most.
