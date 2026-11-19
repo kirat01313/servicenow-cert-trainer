@@ -783,7 +783,7 @@ function confScore(){
   return {score:10*score,parts:parts};
 }
 function scoreBand(s){return s>=8?{t:TL("Pronto para marcar o exame","Ready to book the exam"),c:"ok"}:s>=7?{t:TL("Quase lá","Almost there"),c:"lime"}:s>=5?{t:TL("A caminho","On the way"),c:"warn"}:{t:TL("Ainda longe","Still far"),c:"bad"};}
-function snapDay(){if(!D)return;var d=day();d.sc=Math.round(confScore().score*10);d.rd=readiness(domStats());}
+function snapDay(){if(!D)return;var d=day();d.sc=Math.round(confScore().score*10);d.rd=readiness(domStats());lbSchedule();}
 
 /* ---------------- gráficos pequenos ---------------- */
 function spark(vals,target,max){
@@ -932,7 +932,7 @@ function reportHTML(E,isExam){
 function render(){
   if(!D)return;
   document.querySelectorAll(".tabs a").forEach(function(a){if(a.dataset.tab===view)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
-  var V={treino:vTreino,simulado:vSimulado,progresso:vProgresso,labs:vLabs,montar:vMontar,ranking:vRanking,plano:vPlano,exame:vExame};
+  var V={treino:vTreino,simulado:vSimulado,progresso:vProgresso,labs:vLabs,montar:vMontar,ranking:vRanking,global:vGlobal,plano:vPlano,exame:vExame};
   var h=(V[view]||vHoje)();
   $("view").innerHTML=h; fillCachedAI(); paintSync(); paintExamTop();
 }
@@ -953,7 +953,7 @@ function importHintHTML(){
   return '<section class="panel g-wide imphint"><p class="lbl">'+TL("Já estudaste noutra versão?","Studied in another version?")+'</p><p class="small muted" style="margin:0 0 12px;max-width:70ch">'+
     TL("Se usavas o ficheiro <b>Treino-CSA.html</b> ou a app antiga, abre-o no mesmo browser e vai a <b>Progresso › Dados › Exportar progresso</b>. Depois importa aqui o ficheiro que descarregaste: o progresso passa para a tua conta.",
        "If you used the <b>Treino-CSA.html</b> file or the old app, open it in the same browser and go to <b>Progress › Data › Export progress</b>. Then import the downloaded file here: your progress moves to your account.")+
-    '</p>'+dataPanelHTML()+'</section>';
+    '</p>'+dataPanelHTML().replace(/<button class="btn" data-act="exportp">[^<]*<\/button>/,"")+'</section>';
 }
 function vHoje(){
   var due=dueList().length, fresh=freshList().length, quota=Math.max(0,S.cfg.newPerDay-(day().nw||0)), sm=smartIds(), total=sm.length;
@@ -1216,6 +1216,74 @@ function vRanking(){
     (rows?'<div class="wrlist">'+rows+"</div>":'<p class="small muted" style="margin:0">'+(rk.tab==="bad"?TL("Ainda não erraste nenhuma questão aqui.","You haven’t got any question wrong here yet."):TL("Ainda não acertaste nenhuma questão aqui.","You haven’t got any question right here yet."))+"</p>")+"</section>";
 }
 
+/* ---------------- ranking global (só na versão online; entra só quem quiser) ---------------- */
+function lbStats(){
+  var cs=confScore(), total=pool(false).length, seen=strictSeen(), t7=trail(Date.now(),7), ex=eligibleExams().slice(-3), answers=0;
+  for(var k in S.days)answers+=S.days[k].q||0;
+  return {score:Math.round(cs.score*10)/10, readiness:readiness(domStats()), coverage:total?Math.round(100*seen/total):0,
+    accuracy7:t7.q?Math.round(100*t7.ok/t7.q):null, exams_avg:ex.length?Math.round(ex.reduce(function(a,e){return a+examPct(e);},0)/ex.length):null,
+    streak:streak(), answers:answers};
+}
+var lbTimer=null;
+function lbSchedule(){
+  var B=window.CSA_BACKEND; if(!B||!ui.lbMine)return;
+  clearTimeout(lbTimer);
+  lbTimer=setTimeout(function(){
+    var row=lbStats(); row.display_name=ui.lbMine.display_name;
+    B.lbSave(row).then(function(r){ui.lbMine=r||row;ui.lbRows=null;if(view==="global")render();}).catch(function(){});
+  },4000);
+}
+function lbName(){var el=$("lbName");return el?el.value.trim().replace(/\s+/g," "):"";}
+function lbJoin(){
+  var B=window.CSA_BACKEND, name=lbName(); if(!B)return;
+  if(name.length<2||name.length>24){toast(TL("O nome tem de ter entre 2 e 24 caracteres.","The name must have 2 to 24 characters."));return;}
+  var row=lbStats(); row.display_name=name;
+  B.lbSave(row).then(function(r){ui.lbMine=r||row;ui.lbRename=false;ui.lbRows=null;render();toast(TL("Estás no ranking como ","You’re in the ranking as ")+name+".");})
+  .catch(function(){toast(TL("Não consegui guardar. Tenta outra vez.","Couldn’t save. Try again."));});
+}
+function lbLeave(){
+  var B=window.CSA_BACKEND; if(!B)return;
+  B.lbLeave().then(function(){ui.lbMine=null;ui.armed=null;ui.lbRows=null;render();toast(TL("Saíste do ranking.","You left the ranking."));})
+  .catch(function(){toast(TL("Não consegui sair do ranking. Tenta outra vez.","Couldn’t leave the ranking. Try again."));});
+}
+function vGlobal(){
+  var B=window.CSA_BACKEND;
+  var head='<div class="vh"><div><h1>'+TL("Ranking global","Global ranking")+'</h1><p>'+TL("Quem está mais preparado para o exame, segundo os dados da plataforma. Só aparece quem escolhe entrar.","Who is most ready for the exam, according to the platform’s data. Only people who choose to join appear.")+"</p></div></div>";
+  if(!B)return head+'<div class="empty"><b>'+TL("Disponível só na versão online.","Only available in the online version.")+"</b></div>";
+  if(!ui.lbRows){
+    if(!ui.lbLoading){ui.lbLoading=1;B.lbList().then(function(rows){ui.lbRows=rows;ui.lbLoading=0;if(view==="global")render();}).catch(function(){ui.lbRows=[];ui.lbLoading=0;ui.lbErr=1;if(view==="global")render();});}
+    return head+'<div class="empty"><b>'+TL("A carregar o ranking…","Loading the ranking…")+"</b></div>";
+  }
+  var mine=ui.lbMine, me=B.uid, st=lbStats();
+  var rows=ui.lbRows.slice().sort(function(a,b){return (b.score-a.score)||(b.readiness-a.readiness)||(b.coverage-a.coverage)||(b.answers-a.answers);});
+  var myPos=-1; rows.forEach(function(r,i){if(r.user_id===me)myPos=i;});
+  var you;
+  if(!mine||ui.lbRename){
+    you='<section class="panel lbjoin"><p class="lbl">'+(mine?TL("Mudar o nome","Change your name"):TL("Entrar no ranking","Join the ranking"))+'</p>'+
+      '<p class="small muted" style="margin:0 0 14px;max-width:62ch">'+TL("Escolhe o nome que os colegas vão ver (pode ser um apelido). O teu email nunca aparece. As tuas estatísticas atualizam-se sozinhas quando estudas e podes sair quando quiseres.","Choose the name your classmates will see (a nickname is fine). Your email never appears. Your stats update by themselves as you study, and you can leave whenever you want.")+"</p>"+
+      '<div class="row"><input id="lbName" class="lbinput" type="text" maxlength="24" autocomplete="nickname" value="'+esc(mine?mine.display_name:"")+'" placeholder="'+TL("O teu nome no ranking","Your ranking name")+'" aria-label="'+TL("Nome no ranking","Ranking name")+'">'+
+      '<button class="btn primary" data-act="lbjoin">'+(mine?TL("Guardar nome","Save name"):TL("Entrar no ranking","Join the ranking"))+"</button>"+
+      (mine?'<button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button>":"")+"</div></section>";
+  }else{
+    var leave=ui.armed==="lbleave"?'<button class="btn" data-act="lbleavego" style="border-color:var(--bad);color:var(--bad)">'+TL("Sair mesmo","Leave for real")+'</button> <button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button>"
+      :'<button class="link" data-act="lbleave">'+TL("Sair do ranking","Leave the ranking")+"</button>";
+    you='<section class="panel lbme"><div><p class="lbl">'+TL("A tua posição","Your position")+'</p><div class="lbpos"><b>'+(myPos>=0?(myPos+1)+"º":"—")+'</b><span>'+TL("de ","of ")+rows.length+" · "+esc(mine.display_name)+"</span></div></div>"+
+      '<div class="kv" style="margin:0"><div><b>'+fmt1(st.score)+'</b><span>'+TL("índice de confiança","confidence index")+'</span></div><div><b>'+st.readiness+'%</b><span>'+TL("prontidão","readiness")+'</span></div><div><b>'+st.coverage+'%</b><span>'+TL("do banco visto","of the bank seen")+"</span></div></div>"+
+      '<div class="row lbactions"><button class="link" data-act="lbrename">'+TL("Mudar o nome","Change name")+"</button>"+leave+"</div></section>";
+  }
+  var medal=["🥇","🥈","🥉"];
+  var trs=rows.map(function(r,i){
+    var isMe=r.user_id===me;
+    return '<tr'+(isMe?' class="me"':"")+'><td class="pos">'+(medal[i]||(i+1))+'</td><td class="nm">'+esc(r.display_name)+(isMe?' <span class="tag">'+TL("tu","you")+"</span>":"")+'</td><td class="r"><b>'+fmt1(Number(r.score))+"</b></td>"+
+      '<td class="r">'+r.readiness+'%</td><td class="r">'+r.coverage+'%</td><td class="r">'+(r.accuracy7==null?"—":r.accuracy7+"%")+'</td><td class="r">'+(r.exams_avg==null?"—":r.exams_avg+"%")+"</td>"+
+      '<td class="r">'+r.streak+'</td><td class="r small faint">'+dmy(r.updated_at)+"</td></tr>";
+  }).join("");
+  var table=rows.length?'<div class="tbl"><table class="bp lbt"><thead><tr><th>#</th><th>'+TL("Nome","Name")+'</th><th class="r">'+TL("Índice","Index")+'</th><th class="r">'+TL("Prontidão","Readiness")+'</th><th class="r">'+TL("Banco visto","Bank seen")+'</th><th class="r">'+TL("Acerto 7 d","Accuracy 7 d")+'</th><th class="r">'+TL("Simulados","Exams")+'</th><th class="r">'+TL("Dias seguidos","Day streak")+'</th><th class="r">'+TL("Atualizado","Updated")+"</th></tr></thead><tbody>"+trs+"</tbody></table></div>"
+    :'<p class="small muted" style="margin:0">'+(ui.lbErr?TL("Não consegui carregar o ranking. Recarrega a página.","Couldn’t load the ranking. Reload the page."):TL("Ainda ninguém entrou no ranking. Sê o primeiro!","Nobody has joined the ranking yet. Be the first!"))+"</p>";
+  return head+'<div class="stack">'+you+'<section class="panel"><div class="phead"><p class="lbl">'+TL("Classificação","Standings")+'</p><span class="small faint">'+TL("Ordenado pelo índice de confiança","Sorted by confidence index")+"</span></div>"+table+
+    '<p class="small faint" style="margin:14px 0 0">'+TL("O índice de confiança (0 a 10) junta acerto, simulados, cobertura, retenção, calibração e ritmo, como em Progresso. Prontidão = % do exame que respondes certo agora, com o peso de cada domínio.","The confidence index (0 to 10) combines accuracy, practice exams, coverage, retention, calibration and pace, as in Progress. Readiness = % of the exam you answer correctly now, weighted by domain.")+"</p></section></div>";
+}
+
 /* ---------------- montar sessão ---------------- */
 function mkState(){return ui.mk||(ui.mk={d:"",s:"",m:"",st:"all",n:20,fmt:"t"});}
 function mkList(){var m=mkState(),e=eod();return pool().filter(function(q){if(m.d&&String(q.d)!==m.d)return false;if(m.s&&q.sub!==m.s)return false;if(m.m&&modOf(q)!==m.m)return false;var r=rec(q.id);
@@ -1332,6 +1400,11 @@ document.addEventListener("click",function(ev){
     case "exportp":exportProgress();break;
     case "impgo":applyImport();break;
     case "impno":ui.imp=null;render();break;
+    case "lbjoin":lbJoin();break;
+    case "lbrename":ui.lbRename=true;render();var ln=$("lbName");if(ln)ln.focus();break;
+    case "lbcancel":ui.lbRename=false;ui.armed=null;render();break;
+    case "lbleave":ui.armed="lbleave";render();break;
+    case "lbleavego":lbLeave();break;
     case "rktab":(ui.rk||(ui.rk={tab:"bad",d:""})).tab=v;render();break;
     case "rktrain":var rl=Array.prototype.map.call(document.querySelectorAll("details.rk .qid"),function(x){return x.textContent;});var rids=pool(false).filter(function(q){return rl.indexOf(q.label||("Question "+q.id))>=0;}).map(function(q){return q.id;});startSession("rank",TL("Ranking: mais erradas","Ranking: most missed"),shuffle(rids));break;
     case "mkfmt":mkState().fmt=v;render();break;
@@ -1385,6 +1458,7 @@ document.addEventListener("change",function(ev){
 });
 document.addEventListener("keydown",function(e){
   if(e.key==="Escape"&&!$("pop").hidden){togglePop(false);return;}
+  if(e.key==="Enter"&&e.target.id==="lbName"){e.preventDefault();lbJoin();return;}
   if(/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;
   var k=e.key.toLowerCase();
   if(view==="treino"&&S.sess&&ui.peek!=null){
@@ -1403,7 +1477,7 @@ document.addEventListener("keydown",function(e){
     if(/^[1-9]$/.test(k))examToggle(+k-1); else if(k==="arrowright")examGo(1); else if(k==="arrowleft")examGo(-1); else if(k==="m")examMark();
   }
 });
-function route(){var t=(location.hash||"#hoje").slice(1);view=["hoje","treino","montar","simulado","progresso","ranking","plano","exame","labs"].indexOf(t)>=0?t:"hoje";render();}
+function route(){var t=(location.hash||"#hoje").slice(1);view=["hoje","treino","montar","simulado","progresso","ranking","global","plano","exame","labs"].indexOf(t)>=0?t:"hoje";if(view==="global")ui.lbRows=null;render();}
 document.addEventListener("input",function(ev){var el=ev.target;if(el.dataset.act==="mkn"){mkState().n=+el.value;var o=$("mkNo");if(o)o.textContent=el.value;var sm=$("mkSum");if(sm)sm.innerHTML=mkSummary();}});
 document.addEventListener("toggle",function(ev){var t=ev.target;if(t.classList&&t.classList.contains("topic")){try{localStorage.setItem("csa2-topic",t.open?"1":"0");}catch(e){}}},true);
 function donutTip(ev){
@@ -1452,6 +1526,7 @@ fetch("data.json").then(function(r){if(!r.ok)throw new Error(r.status);return r.
   D=d; d.questions.forEach(function(q){Q[q.id]=q;}); d.domains.forEach(function(x){W[x.id]=x.w;DN[x.id]=x.name;}); applyContent();
   if(S.sess&&S.sess.q)S.sess.q=S.sess.q.filter(function(id){return Q[id];});
   route();
+  if(window.CSA_BACKEND)window.CSA_BACKEND.lbMine().then(function(r){ui.lbMine=r;if(r)lbSchedule();if(view==="global")render();}).catch(function(){});
 }).catch(function(){
   $("view").innerHTML=TL('<div class="vh"><h1>Treino CSA</h1></div><div class="empty"><b>Não consegui carregar as questões</b>O ficheiro de dados não respondeu. Recarrega a página.</div>','<div class="vh"><h1>CSA Trainer</h1></div><div class="empty"><b>Couldn’t load the questions</b>The data file didn’t respond. Reload the page.</div>');
 });

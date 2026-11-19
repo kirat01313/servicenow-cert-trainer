@@ -8,6 +8,8 @@
   var lang = safeGet("csa2-lang") === "en" ? "en" : "pt";
   var sb = null;
   var mode = "signin";
+  var currentEmail = "";
+  var armedDelete = false;
   var notice = "";
 
   var TXT = {
@@ -65,6 +67,25 @@
       recoverSub: "Escolhe uma palavra-passe com pelo menos 8 caracteres.",
       noAccount: "Ainda não tens conta?",
       haveAccount: "Já tens conta?",
+      account: "Conta",
+      changePassword: "Mudar a palavra-passe",
+      privacy: "Privacidade e sobre a app",
+      passwordChanged: "Palavra-passe mudada.",
+      close: "Fechar",
+      cancel: "Cancelar",
+      certsTitle: "Certificações",
+      current: "A estudar",
+      soon: "Em breve",
+      moreCerts: "Mais certificações ServiceNow a caminho.",
+      privacyHtml:
+        "<h3>O que guardamos</h3><ul><li>O teu <b>email</b>, para entrares.</li><li>O teu <b>progresso de estudo</b>: respostas, sessões, simulados, datas e definições.</li><li>Só se entrares no <b>ranking global</b>: o nome que escolheres e as tuas estatísticas (índice, prontidão, cobertura, acerto, simulados, dias seguidos).</li></ul>" +
+        "<h3>Quem vê</h3><ul><li>O teu progresso: só tu.</li><li>O ranking global: os colegas com acesso à mesma certificação. O teu email nunca aparece.</li><li>O administrador vê quantas contas usaram cada código, não o teu progresso.</li></ul>" +
+        "<h3>Os teus direitos</h3><ul><li>Podes exportar o progresso em <b>Progresso › Dados</b>.</li><li>Podes sair do ranking quando quiseres.</li><li>Podes apagar a conta aqui em baixo: apaga o progresso, o acesso e o lugar no ranking. Não dá para desfazer.</li></ul>" +
+        "<h3>Sobre a app</h3><p>Projeto de estudo feito por um aluno do UpSkill (IPCA) para preparar o exame ServiceNow CSA. Não é afiliado à ServiceNow. As questões vêm do banco partilhado na formação; as notas baseiam-se na documentação oficial da ServiceNow; os excertos do guia do curso só aparecem a quem tem acesso.</p>",
+      deleteAccount: "Apagar a minha conta",
+      deleteConfirm: "Tens a certeza? O progresso, o acesso e o lugar no ranking são apagados e não dá para desfazer. Exporta o progresso antes, se o quiseres guardar.",
+      deleteGo: "Apagar mesmo",
+      deleteError: "Não consegui apagar a conta. Tenta outra vez.",
     },
     en: {
       title: "CSA Trainer",
@@ -120,11 +141,31 @@
       recoverSub: "Choose a password with at least 8 characters.",
       noAccount: "Don’t have an account?",
       haveAccount: "Already have an account?",
+      account: "Account",
+      changePassword: "Change password",
+      privacy: "Privacy and about the app",
+      passwordChanged: "Password changed.",
+      close: "Close",
+      cancel: "Cancel",
+      certsTitle: "Certifications",
+      current: "Studying",
+      soon: "Coming soon",
+      moreCerts: "More ServiceNow certifications on the way.",
+      privacyHtml:
+        "<h3>What we store</h3><ul><li>Your <b>email</b>, so you can sign in.</li><li>Your <b>study progress</b>: answers, sessions, practice exams, dates and settings.</li><li>Only if you join the <b>global ranking</b>: the name you choose and your stats (index, readiness, coverage, accuracy, exams, day streak).</li></ul>" +
+        "<h3>Who sees it</h3><ul><li>Your progress: only you.</li><li>The global ranking: classmates with access to the same certification. Your email never appears.</li><li>The admin sees how many accounts used each code, not your progress.</li></ul>" +
+        "<h3>Your rights</h3><ul><li>You can export your progress in <b>Progress › Data</b>.</li><li>You can leave the ranking whenever you want.</li><li>You can delete your account below: it deletes your progress, access and ranking place. It can’t be undone.</li></ul>" +
+        "<h3>About the app</h3><p>A study project made by an UpSkill (IPCA) student to prepare for the ServiceNow CSA exam. Not affiliated with ServiceNow. The questions come from the bank shared during the course; the notes are based on the official ServiceNow documentation; the course guide excerpts are shown only to people with access.</p>",
+      deleteAccount: "Delete my account",
+      deleteConfirm: "Are you sure? Your progress, access and ranking place are deleted and it can’t be undone. Export your progress first if you want to keep it.",
+      deleteGo: "Delete for real",
+      deleteError: "Couldn’t delete the account. Try again.",
     },
   };
 
   function t(k) {
-    return TXT[lang][k];
+    var cur = safeGet("csa2-lang") === "en" ? "en" : "pt";
+    return TXT[cur][k];
   }
   function safeGet(k) {
     try {
@@ -290,6 +331,115 @@
       m.classList.add("err");
     }
   }
+
+  function closePops() {
+    ["certPop", "userPop"].forEach(function (id) {
+      var p = document.getElementById(id);
+      if (p) p.hidden = true;
+    });
+    document.querySelectorAll('[data-g="usermenu"],[data-g="certs"]').forEach(function (b) {
+      b.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function placePop(pop, btn) {
+    var r = btn.getBoundingClientRect();
+    pop.style.left = pop.style.right = pop.style.top = pop.style.bottom = "";
+    pop.hidden = false;
+    var w = pop.offsetWidth;
+    var left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+    pop.style.left = left + "px";
+    if (r.top > window.innerHeight / 2) pop.style.bottom = window.innerHeight - r.top + 8 + "px";
+    else pop.style.top = r.bottom + 8 + "px";
+    btn.setAttribute("aria-expanded", "true");
+  }
+
+  function openUserMenu(btn) {
+    var pop = document.getElementById("userPop");
+    if (!pop.hidden) {
+      closePops();
+      return;
+    }
+    closePops();
+    pop.innerHTML =
+      '<p class="mp-head"><span>' + esc(t("account")) + "</span><b>" + esc(currentEmail) + "</b></p>" +
+      '<button role="menuitem" data-g="pw"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>' + esc(t("changePassword")) + "</button>" +
+      '<button role="menuitem" data-g="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.5v5c0 4.2 3 7.6 7 9 4-1.4 7-4.8 7-9v-5z"/><path d="M12 10.5v5M12 7.8v.4"/></svg>' + esc(t("privacy")) + "</button>" +
+      '<hr><button role="menuitem" data-g="signout" class="mp-out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h9"/></svg>' + esc(t("signout")) + "</button>";
+    placePop(pop, btn);
+  }
+
+  function openCerts(btn) {
+    var pop = document.getElementById("certPop");
+    if (!pop.hidden) {
+      closePops();
+      return;
+    }
+    closePops();
+    var list = [
+      { id: "csa", name: "Certified System Administrator", on: true },
+      { id: "cad", name: "Certified Application Developer", on: false },
+    ];
+    pop.innerHTML =
+      '<p class="mp-head"><span>' + esc(t("certsTitle")) + "</span></p>" +
+      list
+        .map(function (c) {
+          return (
+            '<button role="menuitem" class="mp-cert' + (c.id === CERT ? " on" : "") + '"' + (c.on ? "" : ' disabled aria-disabled="true"') + ' data-g="certpick" data-v="' + c.id + '">' +
+            '<span class="cs-code">' + c.id.toUpperCase() + '</span><span class="mp-cname">' + esc(c.name) + "</span>" +
+            '<span class="pill' + (c.id === CERT ? " ok" : "") + '">' + esc(c.id === CERT ? t("current") : t("soon")) + "</span></button>"
+          );
+        })
+        .join("") +
+      '<p class="mp-foot">' + esc(t("moreCerts")) + "</p>";
+    placePop(pop, btn);
+  }
+
+  function dialog(title, body) {
+    var d = document.getElementById("dlg");
+    d.innerHTML =
+      '<div class="dlg-head"><h2>' + esc(title) + '</h2><button class="dlg-x" data-g="dlgclose" aria-label="' + esc(t("close")) + '">×</button></div>' +
+      '<div class="dlg-body">' + body + "</div>";
+    if (!d.open) d.showModal();
+    var first = d.querySelector("input");
+    if (first) first.focus();
+  }
+
+  function openPassword() {
+    dialog(
+      t("changePassword"),
+      '<p class="gate-msg" role="status" hidden></p>' +
+        '<form data-g="pwchange" novalidate>' +
+        passField("gPass", t("newPassword"), 'autocomplete="new-password" minlength="8"') +
+        passField("gPass2", t("confirmPassword"), 'autocomplete="new-password" minlength="8"') +
+        '<div class="dlg-actions"><button class="btn" type="button" data-g="dlgclose">' + esc(t("cancel")) + '</button><button class="btn primary" type="submit">' + esc(t("savePassword")) + "</button></div></form>"
+    );
+  }
+
+  function openPrivacy() {
+    armedDelete = false;
+    dialog(
+      t("privacy"),
+      '<div class="privacy">' + t("privacyHtml") + "</div>" +
+        '<div class="dlg-danger"><p class="gate-msg" role="status" hidden></p><div class="dlg-actions"><button class="btn danger" type="button" data-g="delacct">' + esc(t("deleteAccount")) + "</button></div></div>"
+    );
+  }
+
+  function dlgMsg(msg, ok) {
+    var m = document.querySelector("#dlg .gate-msg");
+    if (!m) return;
+    m.textContent = msg;
+    m.hidden = false;
+    m.classList.toggle("err", !ok);
+    m.classList.toggle("ok", !!ok);
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closePops();
+  });
+  document.addEventListener("click", function (ev) {
+    if (!ev.target.closest(".menu-pop") && !ev.target.closest('[data-g="usermenu"],[data-g="certs"]')) closePops();
+  }, true);
 
   function busy(form, on) {
     var b = form && form.querySelector('button[type="submit"]');
@@ -467,17 +617,70 @@
       },
     };
 
+    window.CSA_BACKEND = {
+      cert: CERT,
+      uid: uid,
+      lbList: function () {
+        return sb
+          .from("leaderboard")
+          .select("user_id,display_name,score,readiness,coverage,accuracy7,exams_avg,streak,answers,updated_at")
+          .eq("cert", CERT)
+          .then(function (r) {
+            if (r.error) throw r.error;
+            return r.data || [];
+          });
+      },
+      lbMine: function () {
+        return sb
+          .from("leaderboard")
+          .select("*")
+          .eq("cert", CERT)
+          .eq("user_id", uid)
+          .maybeSingle()
+          .then(function (r) {
+            if (r.error) throw r.error;
+            return r.data;
+          });
+      },
+      lbSave: function (row) {
+        row.user_id = uid;
+        row.cert = CERT;
+        row.updated_at = new Date().toISOString();
+        return sb
+          .from("leaderboard")
+          .upsert(row)
+          .select()
+          .maybeSingle()
+          .then(function (r) {
+            if (r.error) throw r.error;
+            return r.data || row;
+          });
+      },
+      lbLeave: function () {
+        return sb
+          .from("leaderboard")
+          .delete()
+          .eq("cert", CERT)
+          .eq("user_id", uid)
+          .then(function (r) {
+            if (r.error) throw r.error;
+          });
+      },
+    };
+
     var foot = document.querySelector(".side-foot");
     if (foot && !document.getElementById("acct")) {
       var row = document.createElement("div");
-      row.className = "row2 acct";
+      row.className = "acct";
       row.id = "acct";
       var email = session.user.email || "";
       row.innerHTML =
-        '<span class="who" title="' + esc(email) + '"><i aria-hidden="true">' + esc((email[0] || "?").toUpperCase()) + "</i>" + esc(email) + "</span>" +
-        '<button class="link" data-g="signout" data-en="Sign out">Sair</button>';
+        '<button class="acct-btn" data-g="usermenu" aria-haspopup="menu" aria-expanded="false" title="' + esc(email) + '">' +
+        '<i aria-hidden="true">' + esc((email[0] || "?").toUpperCase()) + "</i><span>" + esc(email) + "</span>" +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 14 5-5 5 5"/></svg></button>';
       foot.insertBefore(row, foot.firstChild);
     }
+    currentEmail = email;
 
     gate.hidden = true;
     gate.innerHTML = "";
@@ -498,6 +701,7 @@
     var el = ev.target.closest("[data-g]");
     if (!el || el.tagName === "FORM") return;
     var a = el.dataset.g;
+    if (a === "signout") closePops();
     if (a === "lang") {
       lang = el.dataset.v === "en" ? "en" : "pt";
       safeSet("csa2-lang", lang);
@@ -511,6 +715,40 @@
       showAuth();
     } else if (a === "signout") {
       signOut();
+    } else if (a === "usermenu") {
+      openUserMenu(el);
+    } else if (a === "certs") {
+      openCerts(el);
+    } else if (a === "certpick") {
+      closePops();
+    } else if (a === "pw") {
+      closePops();
+      openPassword();
+    } else if (a === "privacy") {
+      closePops();
+      openPrivacy();
+    } else if (a === "dlgclose") {
+      document.getElementById("dlg").close();
+    } else if (a === "delacct") {
+      if (!armedDelete) {
+        armedDelete = true;
+        dlgMsg(t("deleteConfirm"), false);
+        el.textContent = t("deleteGo");
+        return;
+      }
+      el.disabled = true;
+      sb.rpc("delete_my_account").then(function (r) {
+        if (r.error) throw r.error;
+        ["csa2", "csa2-labs", "csa2-ex-doc", "csa2-uid"].forEach(function (k) {
+          safeSet(k, null);
+        });
+        return sb.auth.signOut();
+      }).then(function () {
+        location.reload();
+      }).catch(function () {
+        el.disabled = false;
+        dlgMsg(t("deleteError"), false);
+      });
     } else if (a === "eye") {
       var inp = el.parentNode.querySelector("input");
       var show = inp.type === "password";
@@ -611,6 +849,24 @@
         })
         .catch(function (e) {
           fail(authError(e));
+        })
+        .then(done);
+    } else if (a === "pwchange") {
+      var showErr = function (msg) {
+        dlgMsg(msg, false);
+        done();
+      };
+      if ((pass || "").length < 8) return showErr(t("shortPassword"));
+      if (pass !== pass2) return showErr(t("mismatch"));
+      sb.auth
+        .updateUser({ password: pass })
+        .then(function (r) {
+          if (r.error) throw r.error;
+          f.reset();
+          dlgMsg(t("passwordChanged"), true);
+        })
+        .catch(function (e) {
+          dlgMsg(authError(e), false);
         })
         .then(done);
     } else if (a === "unlock") {
