@@ -26,9 +26,12 @@ The site is bilingual (European Portuguese and English) and works on phones and 
 - **Progress** – KPIs with targets and trends, a confidence index from 0 to 10, an evolution chart
   with a projection to the exam date, weak topics and the review calendar.
 - **Question ranking** – the questions you miss most and get right most.
-- **Global ranking** – an opt-in leaderboard of the class, sorted by the confidence index, with
-  readiness, bank coverage, 7-day accuracy, practice exam average and day streak. Each student
-  picks a public nickname (the email never appears) and can leave at any time.
+- **Global ranking** – a leaderboard of the class, sorted by the confidence index, with readiness,
+  bank coverage, 7-day accuracy, practice exam average and day streak. Every student who has
+  answered questions joins automatically, can change the name shown and can hide at any time.
+  **View profile** opens a classmate's detailed stats: accuracy and coverage per exam domain
+  (next to yours), the parts of the confidence index, recent practice exams and the last 14 days
+  of activity.
 - **Plan** – set the exam date and get hours per day, new questions per day and review intervals
   adjusted to the time you have.
 - **The exam** – the official blueprint facts and tips for exam day.
@@ -49,8 +52,9 @@ The site is bilingual (European Portuguese and English) and works on phones and 
 3. The questions, notes, labs and course guide excerpts are stored in Supabase and only accounts
    with access can read them (row level security). They are **not** in this repository.
 4. Each student's progress is saved in their own rows; nobody else can read it.
-5. The global ranking only shows students who joined it, and only to students with access to the
-   same certification.
+5. The global ranking shows the stats of every student who has answered questions (never the
+   email), only to students with access to the same certification. A student who hides is seen
+   only by the admins.
 
 Paid access for people outside a class is planned (see the roadmap).
 
@@ -82,6 +86,7 @@ supabase/
   schema.sql          everything below in one file (for a new project)
   grants.sql          table permissions for signed-in users
   ranking-and-account.sql   global ranking table and "delete my account" function
+  ranking-profiles.sql      automatic ranking (hide option) and the "View profile" stats
 docs/ROADMAP.md       what comes next
 ```
 
@@ -102,7 +107,8 @@ docs/ROADMAP.md       what comes next
 1. Create a project in [Supabase](https://supabase.com) and put its URL and publishable key in
    `js/config.js` (Supabase → Project Settings → API).
 2. In **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql). (Projects created with an
-   older version of this file also need `grants.sql` and `ranking-and-account.sql`.)
+   older version of this file also need `grants.sql`, `ranking-and-account.sql` and
+   `ranking-profiles.sql`, in that order.)
 3. In **Authentication → URL Configuration**, set the *Site URL* to the GitHub Pages address and add
    it (plus `http://127.0.0.1:5500` for Live Server) to the *Redirect URLs*.
 4. Create your own account on the site, then make it an admin in **SQL Editor**:

@@ -410,6 +410,7 @@
 
   function dialog(title, body) {
     var d = document.getElementById("dlg");
+    d.classList.remove("dlg-wide");
     d.innerHTML =
       '<div class="dlg-head"><h2>' + esc(title) + '</h2><button class="dlg-x" data-g="dlgclose" aria-label="' + esc(t("close")) + '">×</button></div>' +
       '<div class="dlg-body">' + body + "</div>";
@@ -636,11 +637,13 @@
     window.CSA_BACKEND = {
       cert: CERT,
       uid: uid,
+      email: session.user.email || "",
       lbList: function () {
         return sb
           .from("leaderboard")
-          .select("user_id,display_name,score,readiness,coverage,accuracy7,exams_avg,streak,answers,updated_at")
+          .select("user_id,display_name,score,readiness,coverage,accuracy7,exams_avg,streak,answers,profile,updated_at")
           .eq("cert", CERT)
+          .eq("hidden", false)
           .then(function (r) {
             if (r.error) throw r.error;
             return r.data || [];

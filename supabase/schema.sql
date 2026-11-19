@@ -204,6 +204,8 @@ create table if not exists public.leaderboard (
   exams_avg int,
   streak int not null default 0,
   answers int not null default 0,
+  hidden boolean not null default false,
+  profile jsonb check (profile is null or pg_column_size(profile) < 8000),
   updated_at timestamptz not null default now(),
   primary key (user_id, cert)
 );
@@ -215,9 +217,12 @@ create policy "students with access see the ranking" on public.leaderboard
   for select to authenticated using (
     user_id = auth.uid()
     or public.is_admin()
-    or exists (
-      select 1 from public.entitlements e
-      where e.user_id = auth.uid() and e.cert = leaderboard.cert
+    or (
+      not hidden
+      and exists (
+        select 1 from public.entitlements e
+        where e.user_id = auth.uid() and e.cert = leaderboard.cert
+      )
     )
   );
 
