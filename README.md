@@ -64,7 +64,7 @@ js/
   gate.js             sign-in, sign-up with a code, unlock, loads the content and the app
   app.js              the study app (sessions, spaced reviews, exams, progress, labs)
   admin.js            content upload and access codes
-  config.example.js   template for the Supabase settings
+  config.js           Supabase project URL and publishable key
 supabase/schema.sql   tables, row level security and functions
 docs/ROADMAP.md       what comes next
 ```
@@ -78,15 +78,13 @@ docs/ROADMAP.md       what comes next
    cd servicenow-cert-trainer
    ```
 
-2. Copy `js/config.example.js` to `js/config.js` and fill in your Supabase project URL and
-   publishable key (Supabase → Project Settings → API). `js/config.js` is never committed.
-
-3. Serve the folder with any static server, for example the **Live Server** extension in VS Code
+2. Serve the folder with any static server, for example the **Live Server** extension in VS Code
    (right-click `index.html` → *Open with Live Server*).
 
 ## Set up Supabase
 
-1. Create a project in [Supabase](https://supabase.com).
+1. Create a project in [Supabase](https://supabase.com) and put its URL and publishable key in
+   `js/config.js` (Supabase → Project Settings → API).
 2. In **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql).
 3. In **Authentication → URL Configuration**, set the *Site URL* to the GitHub Pages address and add
    it (plus `http://127.0.0.1:5500` for Live Server) to the *Redirect URLs*.
@@ -103,15 +101,11 @@ docs/ROADMAP.md       what comes next
 ## Deploy
 
 The workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) publishes the site on
-every push to `main`. It needs two repository secrets (**Settings → Secrets and variables →
-Actions**):
+every push to `main`. Turn it on once in **Settings → Pages → Source: GitHub Actions**.
 
-| Secret         | Value                                  |
-| -------------- | -------------------------------------- |
-| `SUPABASE_URL` | the project URL                        |
-| `SUPABASE_KEY` | the publishable (anon) key             |
-
-and **Settings → Pages → Source: GitHub Actions**.
+The Supabase URL and publishable key live in [`js/config.js`](js/config.js). The publishable key is
+meant to be public: every table is protected by row level security, so a visitor without an account
+or without access can't read anything. Never put the secret (`service_role`) key in this file.
 
 ## Content and credits
 
