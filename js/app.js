@@ -274,7 +274,7 @@ function toggleOpt(i){
   if(k>=0)ui.sel.splice(k,1);
   else if(!q.multi)ui.sel=[i];
   else{ if(ui.sel.length>=q.ans.length)ui.sel.shift(); ui.sel.push(i); }
-  document.querySelectorAll(".qcard .opt").forEach(function(b,j){b.setAttribute("aria-pressed",ui.sel.indexOf(j)>=0?"true":"false");});
+  document.querySelectorAll(".qcard .opt").forEach(function(b){b.setAttribute("aria-pressed",ui.sel.indexOf(+b.dataset.v)>=0?"true":"false");});
   var ready=ui.sel.length===q.ans.length;
   document.querySelectorAll(".cbtn").forEach(function(b){b.disabled=!ready;});
 }
@@ -336,7 +336,7 @@ function examToggle(i){
   if(k>=0)a.splice(k,1); else if(!q.multi)a=[L]; else{ if(a.length>=q.ans.length)a.shift(); a.push(L); }
   if(a.length)e.a[q.id]=a; else delete e.a[q.id];
   saveLocal();
-  document.querySelectorAll(".qcard .opt").forEach(function(b,j){b.setAttribute("aria-pressed",a.indexOf(q.opts[j].letter)>=0?"true":"false");});
+  document.querySelectorAll(".qcard .opt").forEach(function(b){var o=q.opts[+b.dataset.v];b.setAttribute("aria-pressed",o&&a.indexOf(o.letter)>=0?"true":"false");});
   paintExamTop();
 }
 // tempo passado na questão que está no ecrã (cada visita conta no máximo 10 min, para não somar o tempo com a página fechada)
@@ -357,7 +357,7 @@ function finishExam(){
     if(a.length)record(q,right,"x",(e.t||{})[id],"x");
   });
   var t={}; for(var k in (e.t||{}))t[k]=Math.round(e.t[k]/1000)*1000;
-  var res={at:e.at,end:Math.min(Date.now(),e.ends),n:e.q.length,ok:ok,byD:byD,wrong:wrong,ans:e.a,q:e.q.slice(),t:t,min:e.min||D.meta.exam.minutes,label:e.label||""};
+  var res={seed:e.seed,at:e.at,end:Math.min(Date.now(),e.ends),n:e.q.length,ok:ok,byD:byD,wrong:wrong,ans:e.a,q:e.q.slice(),t:t,min:e.min||D.meta.exam.minutes,label:e.label||""};
   snapDay();
   S.exams.push(res); S.exam=null; ui.resultAt=res.at; ui.examConfirm=false; ui.histTab=nA>=e.q.length?"done":"int";
   markDirty("e"); saveLocal(); render(); window.scrollTo(0,0);
@@ -530,17 +530,17 @@ function paintAI(el,text){
   });
 }
 function prompt(q,chosen){
-  var opts=q.opts.map(function(o){return o.letter+". "+o.text;}).join("\n");
+  var opts=optOrder(q).order.map(function(i,pos){return String.fromCharCode(65+pos)+". "+q.opts[i].text;}).join("\n");
   var refs=(q.key||[]).map(function(k){return '- "'+k.s+TL('" (pág. ','" (p. ')+k.p+", "+k.t+")";}).join("\n");
   var full=q.refs.map(function(r){return "["+r.t+TL(", pág. ",", p. ")+r.p+"]\n"+r.x;}).join("\n\n");
   var dd=q.doc||{}, docx=(dd.x||[]).map(function(x){return "["+x.t+" — "+x.u+"]\n"+x.x;}).join("\n\n");
-  var who=chosen&&chosen.length?(same(chosen,q.ans)?TL("O aluno acertou (escolheu ","The student got it right (chose ")+chosen.join(", ")+").":TL("O aluno escolheu ","The student chose ")+chosen.join(", ")+TL(", que está errado.",", which is wrong.")):TL("O aluno não respondeu e pediu para ver a resposta.","The student didn’t answer and asked to see the answer.");
+  var who=chosen&&chosen.length?(same(chosen,q.ans)?TL("O aluno acertou (escolheu ","The student got it right (chose ")+dls(q,chosen)+").":TL("O aluno escolheu ","The student chose ")+dls(q,chosen)+TL(", que está errado.",", which is wrong.")):TL("O aluno não respondeu e pediu para ver a resposta.","The student didn’t answer and asked to see the answer.");
   return TL("És um tutor de ServiceNow a preparar um aluno português para o exame Certified System Administrator (CSA). Escreve em português de Portugal. Mantém em inglês os nomes técnicos da plataforma (tabelas, módulos, funcionalidades).\n\n","You are a ServiceNow tutor preparing a student for the Certified System Administrator (CSA) exam. Write in English. Keep the platform’s technical names as they are (tables, modules, features).\n\n")+
-    TL("Domínio do blueprint: ","Blueprint domain: ")+DN[q.d]+" — "+q.sub+TL("\n\nQuestão:\n","\n\nQuestion:\n")+q.stem+TL("\n\nOpções:\n","\n\nOptions:\n")+opts+TL("\n\nResposta correta (banco de questões): ","\n\nCorrect answer (question bank): ")+q.back+"\n"+who+"\n\n"+
+    TL("Domínio do blueprint: ","Blueprint domain: ")+DN[q.d]+" — "+q.sub+TL("\n\nQuestão:\n","\n\nQuestion:\n")+q.stem+TL("\n\nOpções:\n","\n\nOptions:\n")+opts+TL("\n\nResposta correta (banco de questões): ","\n\nCorrect answer (question bank): ")+dtext(q,q.back)+"\n"+who+"\n\n"+
     TL("FONTE PRINCIPAL — excertos da documentação oficial ServiceNow (release Brazil):\n","MAIN SOURCE — excerpts from the official ServiceNow documentation (Brazil release):\n")+(docx||TL("(a documentação oficial não tem um tópico sobre esta questão)","(the official documentation has no topic on this question)"))+"\n\n"+
-    TL("Nota curta já mostrada ao aluno:\n","Short note already shown to the student:\n")+(dd.n||TL("(nenhuma)","(none)"))+"\n\n"+
+    TL("Nota curta já mostrada ao aluno:\n","Short note already shown to the student:\n")+(dtext(q,dd.n)||TL("(nenhuma)","(none)"))+"\n\n"+
     TL("FONTE SECUNDÁRIA — guia ServiceNow Administration Fundamentals (livro do curso):\n","SECONDARY SOURCE — ServiceNow Administration Fundamentals guide (course book):\n")+(refs||TL("(nenhuma)","(none)"))+TL("\n\nExcertos completos do guia:\n","\n\nFull excerpts from the guide:\n")+full.slice(0,4000)+"\n\n"+
-    TL("Tarefa: em 4 a 7 frases curtas, explica porque é que a resposta correta está certa","Task: in 4 to 7 short sentences, explain why the correct answer is right")+(chosen&&chosen.length&&!same(chosen,q.ans)?TL(" e porque é que a escolha do aluno está errada"," and why the student’s choice is wrong"):"")+
+    TL("A ordem das opções muda de cada vez que a questão aparece: quando falares de uma opção, cita o texto dela e não só a letra.\n\n","The order of the options changes every time the question appears: when you mention an option, quote its text, not just the letter.\n\n")+TL("Tarefa: em 4 a 7 frases curtas, explica porque é que a resposta correta está certa","Task: in 4 to 7 short sentences, explain why the correct answer is right")+(chosen&&chosen.length&&!same(chosen,q.ans)?TL(" e porque é que a escolha do aluno está errada"," and why the student’s choice is wrong"):"")+
     TL(". Regras: usa só o que está nas fontes acima — não acrescentes factos da tua memória nem suposições («acho», «provavelmente»). Quando usares a documentação, cita o título do tópico entre parênteses; quando usares o guia, indica a página (pág. N). ",". Rules: use only what’s in the sources above — don’t add facts from your memory or assumptions («I think», «probably»). When you use the documentation, cite the topic title in brackets; when you use the guide, give the page (p. N). ")+
     TL("Se as fontes não cobrirem um ponto, escreve claramente «A documentação não cobre este ponto» em vez de o explicar. Se a questão usar nomes antigos (ex.: Report Designer, UI16, Flow Designer, Connect Chat) e a doc usar nomes novos, diz a correspondência. ","If the sources don’t cover a point, say clearly «The documentation doesn’t cover this point» instead of explaining it. If the question uses old names (e.g. Report Designer, UI16, Flow Designer, Connect Chat) and the docs use new names, give the mapping. ")+
     TL("Termina com um parágrafo separado que comece por 'Para memorizar:' e tenha uma regra curta. Escreve em parágrafos simples, sem títulos e sem listas.","End with a separate paragraph that starts with ’To remember:’ and gives a short rule. Write in plain paragraphs, with no headings and no lists.");
@@ -573,15 +573,43 @@ function explain(id,chosen,refresh){
 /* ---------------- peças partilhadas ---------------- */
 function stemHTML(q){return '<p class="stem">'+esc(q.stem).replace(/&lt;image&gt;/g,TL('<span class="noimg">[imagem da questão original não incluída no banco]</span>','<span class="noimg">[the original question’s image isn’t included in the bank]</span>'))+"</p>";}
 function boxes(id){var r=rec(id),b=r&&r.n?r.b:0,s="";for(var i=1;i<=5;i++)s+='<i class="'+(i<=b?"on":"")+'"></i>';return TL('<span class="boxes" title="Caixa ','<span class="boxes" title="Box ')+b+TL(' de 5">',' of 5">')+s+"</span>";}
+/* ---------------- ordem das opções: baralhada sempre que a questão aparece ----------------
+   As letras originais continuam a ser a chave interna (progresso, respostas, estatísticas);
+   só o ecrã mostra A, B, C… pela nova ordem. Dentro da mesma visita a ordem fica fixa. */
+var PAGE_SEED=Math.random().toString(36).slice(2), DISP={};
+function hstr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>13;h=Math.imul(h,1274126177);return (h^(h>>>16))>>>0;}
+function newSeed(){return Math.random().toString(36).slice(2,10);}
+function optSeed(){
+  if(view==="simulado"&&S.exam){if(!S.exam.seed)S.exam.seed=newSeed();return S.exam.seed;}
+  if(view==="simulado"&&ui.resultAt){var r=S.exams.filter(function(e){return e.at===ui.resultAt;})[0];if(r&&r.seed)return r.seed;}
+  if(view==="treino"&&S.sess){var s=S.sess;if(!s.seed)s.seed=newSeed();return s.seed+"|"+(ui.peek!=null?ui.peek:s.i);}
+  return PAGE_SEED;
+}
+function optOrder(q,seed){
+  var key=(seed==null?optSeed():seed)+"|"+q.id;
+  if(DISP[key])return DISP[key];
+  var idx=q.opts.map(function(o,i){return i;});
+  idx.sort(function(a,b){return hstr(key+"|"+a)-hstr(key+"|"+b);});
+  var map={};idx.forEach(function(oi,pos){map[q.opts[oi].letter]=String.fromCharCode(65+pos);});
+  return (DISP[key]={order:idx,map:map});
+}
+function dl(q,L){return optOrder(q).map[L]||L;}
+function dls(q,arr){return (arr||[]).map(function(L){return dl(q,L);}).sort().join(", ");}
+function dtext(q,t){
+  if(!t)return t;
+  return String(t).replace(/^([ \t ]*)([A-H])\.(?=[\s A-Za-z])/gm,function(m,sp,L){return sp+dl(q,L)+".";})
+    .replace(/\b(op[cç][aã]o|op[cç][oõ]es|options?|answers?|resposta|alternativa)(\s+)([A-H])\b/gi,function(m,w,sp,L){return w+sp+dl(q,L);});
+}
+function optAt(q,pos){var o=q?optOrder(q).order:[];return pos<o.length?o[pos]:-1;}
 function optsHTML(q,state){
   // state: {sel:[idx]} antes; {chosen:[letters], reveal:true} depois
-  return '<ol class="opts">'+q.opts.map(function(o,i){
-    var cls="opt",mk="",pressed=false;
+  return '<ol class="opts">'+optOrder(q).order.map(function(i,pos){
+    var o=q.opts[i],cls="opt",mk="",pressed=false;
     if(state.reveal){
       var isR=q.ans.indexOf(o.letter)>=0,picked=state.chosen.indexOf(o.letter)>=0;
       if(isR){cls+=" ok";mk=picked?TL("a tua · correta","yours · correct"):TL("correta","correct");} else if(picked){cls+=" no";mk=TL("a tua","yours");}
     }else pressed=state.sel.indexOf(i)>=0;
-    return '<li><button class="'+cls+'" data-act="'+(state.reveal?"":state.act)+'" data-v="'+i+'" aria-pressed="'+pressed+'"'+(state.reveal?" disabled":"")+'><span class="L">'+esc(o.letter)+'</span><span class="T">'+esc(o.text)+"</span>"+(mk?'<span class="M">'+mk+"</span>":"")+"</button></li>";
+    return '<li><button class="'+cls+'" data-act="'+(state.reveal?"":state.act)+'" data-v="'+i+'" aria-pressed="'+pressed+'"'+(state.reveal?" disabled":"")+'><span class="L">'+String.fromCharCode(65+pos)+'</span><span class="T">'+esc(o.text)+"</span>"+(mk?'<span class="M">'+mk+"</span>":"")+"</button></li>";
   }).join("")+"</ol>";
 }
 function docHTML(q){
@@ -589,7 +617,7 @@ function docHTML(q){
   var src=d.u?TL('<p class="dsrc">Fonte: <a href="','<p class="dsrc">Source: <a href="')+esc(d.u)+'" target="_blank" rel="noopener">'+esc(d.t)+TL("</a> · documentação oficial ServiceNow</p>","</a> · official ServiceNow documentation</p>")
     :TL('<p class="dsrc nosrc">A documentação oficial atual (release Brazil) não tem um tópico sobre isto — muitas vezes é matéria antiga. Esta nota não tem fonte na doc.</p>','<p class="dsrc nosrc">The current official documentation (Brazil release) has no topic on this — it’s often older material. This note has no source in the docs.</p>');
   var xs=(d.x||[]).map(function(x,i){return '<blockquote class="dq">'+esc(x.x)+'<cite><a href="'+esc(x.u)+'" target="_blank" rel="noopener">'+esc(x.t)+"</a></cite></blockquote>";}).join("");
-  return TL('<div class="dnote"><p class="lbl">Porquê</p><p class="dn">','<div class="dnote"><p class="lbl">Why</p><p class="dn">')+esc(d.n)+"</p>"+src+
+  return TL('<div class="dnote"><p class="lbl">Porquê</p><p class="dn">','<div class="dnote"><p class="lbl">Why</p><p class="dn">')+esc(dtext(q,d.n))+"</p>"+src+
     (xs?TL('<details class="more"><summary>O que diz a doc (em inglês)</summary>','<details class="more"><summary>What the docs say</summary>')+xs+"</details>":"")+"</div>";
 }
 function explainHTML(q,chosen){
@@ -598,12 +626,12 @@ function explainHTML(q,chosen){
   var ai=ui.sample?TL('<div class="ai"><div class="ai-head"><p class="lbl">Mais explicação</p><button class="btn" data-act="explain" data-id="','<div class="ai"><div class="ai-head"><p class="lbl">More explanation</p><button class="btn" data-act="explain" data-id="')+q.id+'" data-ch="'+esc(ch)+'">'+(cached?TL("Explicar de outra forma","Explain it another way"):TL("Mais explicação","More explanation"))+'</button></div><div class="ai-out" data-id="'+q.id+TL('" aria-live="polite"></div><p class="ai-note">Gerada pelo Claude só a partir dos excertos da documentação oficial e do guia SNAF. Se a doc não cobrir um ponto, ele diz.</p></div>','" aria-live="polite"></div><p class="ai-note">Generated by Claude only from the excerpts of the official documentation and the SNAF guide. If the docs don’t cover a point, it says so.</p></div>'):"";
   var refs=q.refs.map(function(r){return '<div class="ref"><h4>'+esc(r.t)+TL("<span>pág. ","<span>p. ")+r.p+TL(" · Módulo "," · Module ")+esc(r.m)+"</span></h4><p>"+esc(r.x)+"</p></div>";}).join("");
   var pages=(q.key||[]).map(function(k){return k.p;}).filter(function(p,i,a){return a.indexOf(p)===i;});
-  var raw="FRONT\n"+q.stem+(q.opts.length?"\n\n"+q.opts.map(function(o){return o.letter+". "+o.text;}).join("\n"):"")+(q.note?"\n\n"+q.note:"")+"\n\nBACK\n"+q.back;
+  var raw="FRONT\n"+q.stem+(q.opts.length?"\n\n"+optOrder(q).order.map(function(i,pos){return String.fromCharCode(65+pos)+". "+q.opts[i].text;}).join("\n"):"")+(q.note?"\n\n"+dtext(q,q.note):"")+"\n\nBACK\n"+dtext(q,q.back);
   return '<div class="ex">'+
     docHTML(q)+
     labForQ(q)+
     ai+
-    TL('<div><p class="lbl">Resposta no banco de questões</p><div class="verb">','<div><p class="lbl">Answer in the question bank</p><div class="verb">')+esc(q.back)+"</div></div>"+
+    TL('<div><p class="lbl">Resposta no banco de questões</p><div class="verb">','<div><p class="lbl">Answer in the question bank</p><div class="verb">')+esc(dtext(q,q.back))+"</div></div>"+
     (q.note?TL('<div><p class="lbl">Nota no banco de questões</p><div class="verb">','<div><p class="lbl">Note in the question bank</p><div class="verb">')+esc(q.note.replace(/^\*+\s*/,""))+"</div></div>":"")+
     (key?TL('<details class="more"><summary>No livro SNAF','<details class="more"><summary>In the SNAF book')+(pages.length?TL(" (pág. "," (p. ")+pages.join(", ")+")":"")+"</summary>"+(q.weak?TL('<p class="weak">O guia não trata este tema de forma direta. As frases abaixo são as mais próximas que encontrei.</p>','<p class="weak">The guide doesn’t cover this topic directly. The sentences below are the closest I found.</p>'):"")+key+"</details>":"")+
     TL('<details class="more"><summary>Excertos completos do guia (','<details class="more"><summary>Full excerpts from the guide (')+q.refs.length+")</summary>"+refs+"</details>"+
@@ -1061,10 +1089,10 @@ function vReview(){
   var s=S.sess, idx=ui.peek, q=Q[s.q[idx]], lg=(s.log||{})[idx]||null, ch=lg?lg.ch:[], tot=s.q.length;
   var head='<div class="sessbar"><b>'+esc(lbl(s.label))+'</b><span class="num">'+(idx+1)+"/"+tot+'</span><span class="t"><i style="width:'+pct(s.i,tot)+'%"></i></span><button class="link" data-act="peekcur">'+(s.i<tot?TL("Voltar à questão ","Back to question ")+(s.i+1):TL("Voltar ao resumo","Back to the summary"))+"</button></div>";
   var meta='<div class="qmeta"><span class="qno">'+esc(q.label||("Question "+q.id))+'</span><span class="tag">D'+q.d+" · "+esc(q.sub)+TL('</span><span class="tag rep">Já respondida</span>','</span><span class="tag rep">Already answered</span>')+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+boxes(q.id)+"</div>";
-  var v=!lg?TL('<div class="verdict nt">A correta é ','<div class="verdict nt">The correct answer is ')+q.ans.join(", ")+".</div>"
-    :lg.f==="n"?TL('<div class="verdict nt"><b>Pediste para ver a resposta.</b> A correta é ','<div class="verdict nt"><b>You asked to see the answer.</b> The correct answer is ')+q.ans.join(", ")+".</div>"
+  var v=!lg?TL('<div class="verdict nt">A correta é ','<div class="verdict nt">The correct answer is ')+dls(q,q.ans)+".</div>"
+    :lg.f==="n"?TL('<div class="verdict nt"><b>Pediste para ver a resposta.</b> A correta é ','<div class="verdict nt"><b>You asked to see the answer.</b> The correct answer is ')+dls(q,q.ans)+".</div>"
     :lg.c?TL('<div class="verdict ok"><b>Acertaste</b> · ','<div class="verdict ok"><b>Correct</b> · ')+CONF[lg.f]+(lg.ms?" · "+mmss(lg.ms):"")+".</div>"
-    :TL('<div class="verdict no"><b>Erraste</b> · ','<div class="verdict no"><b>Wrong</b> · ')+CONF[lg.f]+TL(". A correta é ",". The correct answer is ")+q.ans.join(", ")+".</div>";
+    :TL('<div class="verdict no"><b>Erraste</b> · ','<div class="verdict no"><b>Wrong</b> · ')+CONF[lg.f]+TL(". A correta é ",". The correct answer is ")+dls(q,q.ans)+".</div>";
   var nav='<div class="nextrow" style="justify-content:space-between"><button class="btn" data-act="prevq"'+(idx?"":" disabled")+TL('>Anterior<kbd>←</kbd></button><button class="btn primary" data-act="peeknext">Seguinte<kbd>→</kbd></button></div>','>Previous<kbd>←</kbd></button><button class="btn primary" data-act="peeknext">Next<kbd>→</kbd></button></div>');
   return '<div class="read">'+head+'<article class="qcard">'+meta+topicHTML(q)+stemHTML(q)+optsHTML(q,{chosen:ch,reveal:true})+v+nav+explainHTML(q,ch)+"</article></div>";
 }
@@ -1116,10 +1144,10 @@ function vQuestion(){
       TL('<button class="link" data-act="conf" data-v="n">Não sei, mostrar resposta</button></div>','<button class="link" data-act="conf" data-v="n">Don’t know, show the answer</button></div>');
   }else{
     var r=rec(q.id), vcls=L.conf==="n"?"nt":L.correct?"ok":"no", vtxt, tm=L.ms?' <span class="num">· '+mmss(L.ms)+"</span>":"";
-    if(s.mode==="redo")vtxt=L.correct?TL("<b>Certo desta vez.</b> Como já tinhas visto a resposta, não conta para as estatísticas.","<b>Right this time.</b> Since you’d already seen the answer, it doesn’t count towards the statistics."):TL("<b>Ainda errado.</b> A correta é ","<b>Still wrong.</b> The correct answer is ")+q.ans.join(", ")+TL(". Volta nas próximas sessões.",". It comes back in the next sessions.");
-    else if(L.conf==="n")vtxt=TL("<b>Resposta: ","<b>Answer: ")+q.ans.join(", ")+TL(".</b> Fica para o bloco final e nas revisões até a acertares.",".</b> It goes to the final block and stays in your reviews until you get it right.");
+    if(s.mode==="redo")vtxt=L.correct?TL("<b>Certo desta vez.</b> Como já tinhas visto a resposta, não conta para as estatísticas.","<b>Right this time.</b> Since you’d already seen the answer, it doesn’t count towards the statistics."):TL("<b>Ainda errado.</b> A correta é ","<b>Still wrong.</b> The correct answer is ")+dls(q,q.ans)+TL(". Volta nas próximas sessões.",". It comes back in the next sessions.");
+    else if(L.conf==="n")vtxt=TL("<b>Resposta: ","<b>Answer: ")+dls(q,q.ans)+TL(".</b> Fica para o bloco final e nas revisões até a acertares.",".</b> It goes to the final block and stays in your reviews until you get it right.");
     else if(L.correct)vtxt=TL("<b>Certo.</b>","<b>Correct.</b>")+tm+(L.conf==="p"?TL(" Foi palpite, por isso volta "," It was a guess, so it comes back ")+when(r.due)+TL(" para confirmares."," for you to confirm."):TL(" Volta a aparecer "," It comes back ")+when(r.due)+".");
-    else vtxt=TL("<b>Errado.</b>","<b>Wrong.</b>")+tm+TL(" A correta é "," The correct answer is ")+q.ans.join(", ")+TL(". Podes refazê-la no bloco final e volta mais vezes nas próximas sessões.",". You can redo it in the final block and it comes back more often in the next sessions.");
+    else vtxt=TL("<b>Errado.</b>","<b>Wrong.</b>")+tm+TL(" A correta é "," The correct answer is ")+dls(q,q.ans)+TL(". Podes refazê-la no bloco final e volta mais vezes nas próximas sessões.",". You can redo it in the final block and it comes back more often in the next sessions.");
     if(s.mode==="death"&&s.dead===s.i+1)vtxt+=" <b>"+TL("É o ","That’s mistake ")+DEATH_MAX+TL(".º erro: o desafio acabou.",": the challenge is over.")+"</b>";
     body=optsHTML(q,{chosen:L.chosen,reveal:true})+'<div class="verdict '+vcls+'" role="status">'+vtxt+"</div>"+
       (!L.correct&&L.conf==="s"&&s.mode!=="redo"?TL('<div class="hc"><b>Erro confiante.</b> Ficou na lista de erros confiantes. Lê a explicação com atenção: são os erros que mais ficam na memória depois de corrigidos.</div>','<div class="hc"><b>Confident mistake.</b> It went on the confident mistakes list. Read the explanation carefully: these are the mistakes that stick best in memory once corrected.</div>'):"")+
@@ -1224,7 +1252,7 @@ function histHTML(){
 function vResult(r){
   var s=exStats(r);
   var wr=s.wrongA.map(function(id,i){var q=Q[id],ch=(r.ans&&r.ans[id])||[],tm=s.t&&s.t[id];
-    var meta='<span class="tag">D'+q.d+" · "+esc(q.sub)+TL('</span><span>Escolheste <b class="no">','</span><span>You chose <b class="no">')+esc(ch.join(", "))+TL('</b></span><span>Certa <b class="yes">','</b></span><span>Correct <b class="yes">')+esc(q.ans.join(", "))+"</b></span>"+(tm?'<span class="num">'+mmss(tm)+"</span>":"")+'<span class="qid">'+esc(q.label||("Question "+q.id))+"</span>";
+    var meta='<span class="tag">D'+q.d+" · "+esc(q.sub)+TL('</span><span>Escolheste <b class="no">','</span><span>You chose <b class="no">')+esc(dls(q,ch))+TL('</b></span><span>Certa <b class="yes">','</b></span><span>Correct <b class="yes">')+esc(dls(q,q.ans))+"</b></span>"+(tm?'<span class="num">'+mmss(tm)+"</span>":"")+'<span class="qid">'+esc(q.label||("Question "+q.id))+"</span>";
     return '<details class="wr"><summary><span class="wx">'+(i+1)+'</span><span><span class="ws">'+esc(q.stem)+'</span><span class="wmeta">'+meta+'</span></span><span class="chev" aria-hidden="true"></span></summary><div class="body">'+optsHTML(q,{chosen:ch,reveal:true})+explainHTML(q,ch)+"</div></details>";}).join("");
   var mins=Math.round(s.used/60000);
   var tag=s.complete?TL('<span class="pill ok">Completo</span>','<span class="pill ok">Complete</span>'):TL('<span class="pill warn">Interrompido</span>','<span class="pill warn">Interrupted</span>');
@@ -1614,12 +1642,12 @@ document.addEventListener("keydown",function(e){
   if(view==="treino"&&curQ()){
     if(k==="arrowleft"){prevQ();e.preventDefault();return;}
     if(!ui.done){
-      if(/^[1-9]$/.test(k)){toggleOpt(+k-1);e.preventDefault();}
+      if(/^[1-9]$/.test(k)){toggleOpt(optAt(curQ(),+k-1));e.preventDefault();}
       else if(k==="c")verify("s"); else if(k==="a")verify("a"); else if(k==="p")verify("p"); else if(k==="n")verify("n");
       else if(k==="enter"&&curQ()&&ui.sel.length===curQ().ans.length){verify("a");e.preventDefault();}
     }else if(k==="enter"||k==="arrowright"){if(e.target.tagName==="BUTTON"&&e.target.dataset.act!=="next"&&k==="enter")return;next();e.preventDefault();}
   }else if(view==="simulado"&&S.exam){
-    if(/^[1-9]$/.test(k))examToggle(+k-1); else if(k==="arrowright")examGo(1); else if(k==="arrowleft")examGo(-1); else if(k==="m")examMark();
+    if(/^[1-9]$/.test(k))examToggle(optAt(exQ(),+k-1)); else if(k==="arrowright")examGo(1); else if(k==="arrowleft")examGo(-1); else if(k==="m")examMark();
   }
 });
 function route(){var t=(location.hash||"#hoje").slice(1);view=["hoje","treino","montar","simulado","progresso","ranking","global","plano","exame","labs"].indexOf(t)>=0?t:"hoje";if(view==="global")ui.lbRows=null;render();}
