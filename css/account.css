@@ -1,0 +1,428 @@
+/* ---------- certification picker (under the logo) ---------- */
+.certsw {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--sunk);
+  border-radius: 11px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-align: left;
+}
+
+.certsw:hover {
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+
+.certsw .cs-code,
+.menu-pop .cs-code {
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.04em;
+  background: var(--lime);
+  color: var(--lime-ink);
+  border-radius: 6px;
+  padding: 4px 6px;
+  flex: none;
+}
+
+.certsw .cs-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.certsw svg,
+.acct-btn svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 999px) {
+  .certsw {
+    width: auto;
+    padding: 6px 8px;
+  }
+  .certsw .cs-name {
+    display: none;
+  }
+}
+
+/* ---------- account button (sidebar footer) ---------- */
+.side-foot .acct {
+  display: flex;
+}
+
+.acct-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 6px 10px 6px 6px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.acct-btn:hover,
+.acct-btn[aria-expanded="true"] {
+  border-color: var(--line-2);
+  background: var(--sunk);
+}
+
+.acct-btn i {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #0f2d1f;
+  color: #c6ec8e;
+  display: grid;
+  place-items: center;
+  font: 600 12px/1 var(--mono);
+  font-style: normal;
+}
+
+.acct-btn span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.acct-btn svg {
+  color: var(--ink-3);
+}
+
+@media (max-width: 999px) {
+  .acct-btn {
+    width: auto;
+    padding: 3px;
+    border-radius: 50%;
+  }
+  .acct-btn span,
+  .acct-btn svg {
+    display: none;
+  }
+}
+
+/* ---------- pop-up menus ---------- */
+.menu-pop {
+  position: fixed;
+  z-index: 60;
+  width: min(300px, calc(100vw - 16px));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(17, 26, 21, 0.18);
+  padding: 6px;
+}
+
+.menu-pop .mp-head {
+  margin: 0;
+  padding: 10px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-pop .mp-head span {
+  font: 500 10.5px/1.2 var(--mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.menu-pop .mp-head b {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-pop button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  padding: 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-pop button:hover:not([disabled]) {
+  background: var(--sunk);
+}
+
+.menu-pop button svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.menu-pop .mp-out,
+.menu-pop .mp-out svg {
+  color: var(--bad);
+  stroke: var(--bad);
+}
+
+.menu-pop hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 4px 6px;
+}
+
+.menu-pop .mp-cert[disabled] {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.menu-pop .mp-cname {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.menu-pop .pill {
+  font-size: 11px;
+}
+
+.menu-pop .mp-foot {
+  margin: 4px 10px 8px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* ---------- dialogs ---------- */
+.dlg {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(86vh, 760px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(17, 26, 21, 0.25);
+}
+
+.dlg::backdrop {
+  background: rgba(11, 33, 23, 0.45);
+}
+
+.dlg-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 22px 0;
+}
+
+.dlg-head h2 {
+  font: 600 21px/1.2 var(--display);
+  margin: 0;
+  flex: 1;
+}
+
+.dlg-x {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.dlg-x:hover {
+  background: var(--sunk);
+  color: var(--ink);
+}
+
+.dlg-body {
+  padding: 16px 22px 22px;
+}
+
+.dlg-body form {
+  display: flex;
+  flex-direction: column;
+}
+
+.dlg-body .field {
+  margin-bottom: 14px;
+}
+
+.dlg-body .field > span:first-child {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dlg-body input {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.dlg-body input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.dlg-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.gate-msg.ok {
+  background: color-mix(in srgb, var(--ok) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--ok) 30%, var(--surface));
+  color: var(--ok);
+}
+
+.privacy {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.privacy h3 {
+  font: 600 14px/1.3 var(--sans, inherit);
+  color: var(--ink);
+  margin: 16px 0 6px;
+}
+
+.privacy h3:first-child {
+  margin-top: 0;
+}
+
+.privacy ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.privacy p {
+  margin: 0;
+}
+
+.dlg-danger {
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+  padding-top: 16px;
+}
+
+.btn.danger {
+  border-color: color-mix(in srgb, var(--bad) 45%, var(--surface));
+  color: var(--bad);
+}
+
+.btn.danger:hover {
+  background: color-mix(in srgb, var(--bad) 8%, var(--surface));
+}
+
+/* ---------- global ranking ---------- */
+.lbme {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px 28px;
+  align-items: center;
+}
+
+.lbpos {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.lbpos b {
+  font: 600 44px/1 var(--display);
+  letter-spacing: -0.03em;
+}
+
+.lbpos span {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.lbactions {
+  grid-column: 1 / -1;
+  gap: 16px;
+}
+
+.lbinput {
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+  font: inherit;
+  font-size: 15px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.lbinput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.lbt td.pos {
+  font-family: var(--mono);
+  font-weight: 600;
+  width: 36px;
+}
+
+.lbt td.nm {
+  font-weight: 500;
+}
+
+.lbt tr.me td {
+  background: color-mix(in srgb, var(--lime) 30%, var(--surface));
+}
+
+@media (max-width: 700px) {
+  .lbme {
+    grid-template-columns: 1fr;
+  }
+}

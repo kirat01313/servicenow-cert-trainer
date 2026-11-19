@@ -11,12 +11,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/gate.css">
+<link rel="stylesheet" href="css/account.css">
 </head>
 <body class="gated">
 <div class="gate" id="gate" hidden></div>
 <header class="top" id="top">
   <div class="top-in">
     <a class="brand" href="#hoje"><span class="logo" aria-hidden="true">CSA</span><span><b data-en="CSA Trainer">Treino CSA</b><small>ZURICH · 60 Q · 90 MIN</small></span></a>
+    <button class="certsw" id="certSw" data-g="certs" aria-haspopup="true" aria-expanded="false"><span class="cs-code">CSA</span><span class="cs-name">Certified System Administrator</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
     <nav class="tabs" aria-label="Vistas" data-en-aria="Views">
       <span class="grp" data-en="Study">Estudar</span>
       <a href="#hoje" data-tab="hoje"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg><span data-en="Today">Hoje</span></a>
@@ -25,7 +27,8 @@
       <a href="#simulado" data-tab="simulado"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg><span data-en="Practice exam">Simulado</span></a>
       <span class="grp" data-en="Analyse">Analisar</span>
       <a href="#progresso" data-tab="progresso"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="m5 15 4.5-4.5 3.5 3L19 7"/></svg><span data-en="Progress">Progresso</span></a>
-      <a href="#ranking" data-tab="ranking"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-5"/></svg><span data-en="Ranking">Ranking</span></a>
+      <a href="#ranking" data-tab="ranking"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-5"/></svg><span data-en="Question ranking">Ranking de questões</span></a>
+      <a href="#global" data-tab="global"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/></svg><span data-en="Global ranking">Ranking global</span></a>
       <span class="grp" data-en="Prepare">Preparar</span>
       <a href="#plano" data-tab="plano"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M4 10h16"/></svg><span data-en="Plan">Plano</span></a>
       <a href="#exame" data-tab="exame"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="m9 13.5-1.5 7L12 18l4.5 2.5-1.5-7"/></svg><span data-en="The exam">O exame</span></a>
@@ -49,6 +52,10 @@
 
 <div class="veil" id="veil" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<div class="menu-pop" id="certPop" role="menu" hidden></div>
+<div class="menu-pop" id="userPop" role="menu" hidden></div>
+<dialog class="dlg" id="dlg"></dialog>
 
 <script>window.CSA_WEB = 1;</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
