@@ -1411,6 +1411,7 @@ document.addEventListener("click",function(ev){
     case "start":startMode(v);break;
     case "redo":startMode("redo");break;
     case "theme":setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");break;
+    case "themeset":setTheme(v);break;
     case "lang":if(v!==LANG)setLang(v);break;
     case "exportp":exportProgress();break;
     case "impgo":applyImport();break;
@@ -1519,7 +1520,7 @@ document.addEventListener("mousemove",function(ev){
   tip.innerHTML="<b>"+new Date(p.t).toLocaleDateString(LOC(),{weekday:"short",day:"numeric",month:"short"})+TL("</b><div><span><i style=\"background:var(--s1)\"></i>Acerto 7 d</span><span>","</b><div><span><i style=\"background:var(--s1)\"></i>Accuracy 7 d</span><span>")+(p.acc==null?"—":Math.round(p.acc)+"%")+TL("</span></div><div><span><i style=\"background:var(--s2)\"></i>Banco visto</span><span>","</span></div><div><span><i style=\"background:var(--s2)\"></i>Bank seen</span><span>")+Math.round(p.cov)+TL("%</span></div><div><span><i style=\"background:var(--s3)\"></i>Índice</span><span>","%</span></div><div><span><i style=\"background:var(--s3)\"></i>Index</span><span>")+(p.sc==null?"—":fmt1(p.sc/10))+TL("</span></div><div><span>Respondidas</span><span>","</span></div><div><span>Answered</span><span>")+p.q+"</span></div>";
   tip.hidden=false;tip.style.left=Math.max(0,Math.min(box.width-170,x+12))+"px";tip.style.top="8px";
 });
-function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("csa2-theme",t);}catch(e){}var b=$("themeBtn"),l=$("themeLbl");if(b)b.setAttribute("aria-label",t==="dark"?TL("Mudar para tema claro","Switch to light theme"):TL("Mudar para tema escuro","Switch to dark theme"));if(l)l.textContent=t==="dark"?TL("Tema escuro","Dark theme"):TL("Tema claro","Light theme");}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("csa2-theme",t);}catch(e){}var b=$("themeBtn"),l=$("themeLbl");if(b)b.setAttribute("aria-label",t==="dark"?TL("Mudar para tema claro","Switch to light theme"):TL("Mudar para tema escuro","Switch to dark theme"));if(l)l.textContent=t==="dark"?TL("Tema escuro","Dark theme"):TL("Tema claro","Light theme");document.querySelectorAll('[data-act="themeset"]').forEach(function(x){x.setAttribute("aria-pressed",x.dataset.v===t?"true":"false");});}
 function setTopH(){var tp=$("top");document.documentElement.style.setProperty("--toph",(window.innerWidth<1000&&tp?tp.offsetHeight:0)+"px");}
 window.addEventListener("resize",setTopH);
 window.addEventListener("hashchange",function(){route();window.scrollTo(0,0);});
