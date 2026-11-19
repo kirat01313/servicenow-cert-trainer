@@ -176,3 +176,17 @@ revoke all on function public.check_access_code(text) from public;
 revoke all on function public.redeem_access_code(text) from public;
 grant execute on function public.check_access_code(text) to anon, authenticated;
 grant execute on function public.redeem_access_code(text) to authenticated;
+
+-- Table permissions (same as supabase/grants.sql)
+grant usage on schema public to anon, authenticated;
+
+grant select, insert, update, delete on public.certifications to authenticated;
+grant select on public.admins to authenticated;
+grant select, insert, update, delete on public.access_codes to authenticated;
+grant select, insert, update, delete on public.entitlements to authenticated;
+grant select, insert, update, delete on public.cert_content to authenticated;
+grant select, insert, update, delete on public.user_docs to authenticated;
+
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.check_access_code(text) to anon, authenticated;
+grant execute on function public.redeem_access_code(text) to authenticated;
