@@ -311,10 +311,17 @@
     );
   }
 
-  function showMessage(msg) {
+  function showMessage(msg, err) {
     gate.hidden = false;
     notice = msg;
-    layout("", "", '<p class="auth-switch"><button class="link" type="button" data-g="signout">' + esc(t("signout")) + "</button></p>");
+    var detail = err ? String(err.message || err.code || err) : "";
+    if (err) console.error(err);
+    layout(
+      "",
+      "",
+      (detail ? '<p class="gate-detail">' + esc(detail) + "</p>" : "") +
+        '<p class="auth-switch"><button class="link" type="button" data-g="signout">' + esc(t("signout")) + "</button></p>"
+    );
   }
 
   function showLoading() {
@@ -511,11 +518,11 @@
             boot(session, content);
           })
           .catch(function (e) {
-            showMessage(e && e.message === "empty" ? t("emptyContent") : t("loadError"));
+            showMessage(e && e.message === "empty" ? t("emptyContent") : t("loadError"), e && e.message === "empty" ? null : e);
           });
       })
-      .catch(function () {
-        showMessage(t("loadError"));
+      .catch(function (e) {
+        showMessage(t("loadError"), e);
       });
   }
 
@@ -689,7 +696,7 @@
     gate.innerHTML = "";
     document.body.classList.remove("gated");
     var s = document.createElement("script");
-    s.src = "js/app.js";
+    s.src = "js/app.js?v=dev";
     document.body.appendChild(s);
   }
 
