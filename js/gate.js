@@ -9,6 +9,7 @@
   var sb = null;
   var mode = "signin";
   var currentEmail = "";
+  var isAdmin = false;
   var armedDelete = false;
   var notice = "";
 
@@ -68,6 +69,7 @@
       noAccount: "Ainda não tens conta?",
       haveAccount: "Já tens conta?",
       account: "Conta",
+      admin: "Administração",
       changePassword: "Mudar a palavra-passe",
       privacy: "Privacidade e sobre a app",
       passwordChanged: "Palavra-passe mudada.",
@@ -142,6 +144,7 @@
       noAccount: "Don’t have an account?",
       haveAccount: "Already have an account?",
       account: "Account",
+      admin: "Admin",
       changePassword: "Change password",
       privacy: "Privacy and about the app",
       passwordChanged: "Password changed.",
@@ -370,6 +373,9 @@
     closePops();
     pop.innerHTML =
       '<p class="mp-head"><span>' + esc(t("account")) + "</span><b>" + esc(currentEmail) + "</b></p>" +
+      (isAdmin
+        ? '<a role="menuitem" class="mp-link" href="admin.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>' + esc(t("admin")) + "</a>"
+        : "") +
       '<button role="menuitem" data-g="pw"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>' + esc(t("changePassword")) + "</button>" +
       '<button role="menuitem" data-g="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.5v5c0 4.2 3 7.6 7 9 4-1.4 7-4.8 7-9v-5z"/><path d="M12 10.5v5M12 7.8v.4"/></svg>' + esc(t("privacy")) + "</button>" +
       '<hr><button role="menuitem" data-g="signout" class="mp-out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h9"/></svg>' + esc(t("signout")) + "</button>";
@@ -691,6 +697,13 @@
       foot.insertBefore(row, foot.firstChild);
     }
     currentEmail = email;
+    sb.from("admins")
+      .select("user_id")
+      .eq("user_id", uid)
+      .maybeSingle()
+      .then(function (r) {
+        isAdmin = !r.error && !!r.data;
+      });
 
     gate.hidden = true;
     gate.innerHTML = "";

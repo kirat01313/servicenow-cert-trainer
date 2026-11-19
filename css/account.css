@@ -160,7 +160,8 @@
   text-overflow: ellipsis;
 }
 
-.menu-pop button {
+.menu-pop button,
+.menu-pop .mp-link {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -176,10 +177,16 @@
   text-align: left;
 }
 
+.menu-pop .mp-link {
+  text-decoration: none;
+}
+
+.menu-pop .mp-link:hover,
 .menu-pop button:hover:not([disabled]) {
   background: var(--sunk);
 }
 
+.menu-pop .mp-link svg,
 .menu-pop button svg {
   width: 18px;
   height: 18px;
