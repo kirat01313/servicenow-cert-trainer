@@ -379,3 +379,13 @@ body.gated .veil {
   background: currentColor;
   transform: rotate(-40deg);
 }
+
+.gate-detail {
+  font: 12px/1.5 var(--mono);
+  color: var(--ink-3);
+  background: var(--sunk);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: -8px 0 6px;
+  word-break: break-word;
+}
