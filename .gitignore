@@ -1,5 +1,4 @@
-# Local Supabase settings (the deploy writes its own from GitHub Secrets)
-js/config.js
+# Local secrets
 .env
 
 # Course content: questions, notes and book excerpts live only in Supabase
