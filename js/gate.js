@@ -43,6 +43,28 @@
       noConfig: "A aplicação não está configurada: falta o ficheiro js/config.js.",
       loadError: "Não consegui carregar as questões. Recarrega a página.",
       emptyContent: "As questões ainda não foram carregadas para esta certificação.",
+      confirmPassword: "Confirmar a palavra-passe",
+      mismatch: "As palavras-passe não coincidem.",
+      showPassword: "Mostrar a palavra-passe",
+      hidePassword: "Esconder a palavra-passe",
+      kicker: "ServiceNow · Certified System Administrator",
+      headline: "Passa no CSA com método.",
+      sub: "Revisões espaçadas, simulados como o exame real e labs para a tua PDI. O progresso fica guardado na tua conta.",
+      f1: "441 questões organizadas pelos 6 domínios do blueprint",
+      f2: "Simulados de 60 questões em 90 minutos",
+      f3: "73 labs passo a passo para a tua PDI",
+      f4: "Índice de confiança e plano até ao dia do exame",
+      foot: "Projeto de estudo. Não é afiliado à ServiceNow.",
+      signinTitle: "Bem-vindo de volta",
+      signinSub: "Entra para continuar o teu estudo.",
+      signupTitle: "Criar conta",
+      signupSub: "Precisas do código de acesso da tua turma.",
+      forgotTitle: "Recuperar a palavra-passe",
+      forgotSub: "Enviamos-te um link para escolheres uma nova.",
+      recoverTitle: "Nova palavra-passe",
+      recoverSub: "Escolhe uma palavra-passe com pelo menos 8 caracteres.",
+      noAccount: "Ainda não tens conta?",
+      haveAccount: "Já tens conta?",
     },
     en: {
       title: "CSA Trainer",
@@ -76,6 +98,28 @@
       noConfig: "The app isn’t configured: the js/config.js file is missing.",
       loadError: "Couldn’t load the questions. Reload the page.",
       emptyContent: "The questions for this certification haven’t been uploaded yet.",
+      confirmPassword: "Confirm password",
+      mismatch: "The passwords don’t match.",
+      showPassword: "Show password",
+      hidePassword: "Hide password",
+      kicker: "ServiceNow · Certified System Administrator",
+      headline: "Pass the CSA with a method.",
+      sub: "Spaced reviews, practice exams like the real one and labs for your PDI. Your progress is saved to your account.",
+      f1: "441 questions organized by the 6 blueprint domains",
+      f2: "Practice exams of 60 questions in 90 minutes",
+      f3: "73 step-by-step labs for your PDI",
+      f4: "Confidence index and a plan up to exam day",
+      foot: "Study project. Not affiliated with ServiceNow.",
+      signinTitle: "Welcome back",
+      signinSub: "Sign in to carry on studying.",
+      signupTitle: "Create account",
+      signupSub: "You need your class access code.",
+      forgotTitle: "Reset your password",
+      forgotSub: "We’ll send you a link to choose a new one.",
+      recoverTitle: "New password",
+      recoverSub: "Choose a password with at least 8 characters.",
+      noAccount: "Don’t have an account?",
+      haveAccount: "Already have an account?",
     },
   };
 
@@ -107,18 +151,34 @@
     document.documentElement.lang = lang === "en" ? "en" : "pt-PT";
   })();
 
-  function card(inner) {
+  var ICONS = {"q": "<path d=\"M4 6.5h16M4 12h16M4 17.5h10\"/>", "clock": "<circle cx=\"12\" cy=\"13\" r=\"7.5\"/><path d=\"M12 9v4l2.5 2M9.5 3h5\"/>", "lab": "<path d=\"M9.5 3.5h5M10.5 3.5v6L5 19a1 1 0 0 0 .9 1.5h12.2A1 1 0 0 0 19 19l-5.5-9.5v-6\"/><path d=\"M7.5 15h9\"/>", "chart": "<path d=\"M4 19h16\"/><path d=\"m5 15 4.5-4.5 3.5 3L19 7\"/>"};
+  var EYE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  function layout(title, sub, inner) {
     gate.innerHTML =
-      '<div class="gate-card">' +
-      '<div class="gate-top"><span class="logo" aria-hidden="true">CSA</span><b>' + esc(t("title")) + "</b>" +
-      '<div class="seg langseg" role="group" aria-label="Idioma / Language">' +
+      '<div class="auth">' +
+      '<aside class="auth-brand">' +
+      '<div class="ab-top"><span class="logo" aria-hidden="true">CSA</span><b>' + esc(t("title")) + "</b></div>" +
+      '<div class="ab-mid"><p class="ab-kicker">' + esc(t("kicker")) + "</p><h1>" + esc(t("headline")) + "</h1>" +
+      '<p class="ab-sub">' + esc(t("sub")) + "</p>" +
+      '<ul class="ab-feats">' +
+      [["q", "f1"], ["clock", "f2"], ["lab", "f3"], ["chart", "f4"]]
+        .map(function (f) {
+          return '<li><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[f[0]] + "</svg></span>" + esc(t(f[1])) + "</li>";
+        })
+        .join("") +
+      "</ul></div>" +
+      '<p class="ab-foot">' + esc(t("foot")) + "</p></aside>" +
+      '<main class="auth-main"><div class="auth-box">' +
+      '<div class="seg langseg ab-lang" role="group" aria-label="Idioma / Language">' +
       '<button data-g="lang" data-v="pt" aria-pressed="' + (lang === "pt") + '">PT</button>' +
-      '<button data-g="lang" data-v="en" aria-pressed="' + (lang === "en") + '">EN</button></div></div>' +
-      '<p class="gate-tag">' + esc(t("tagline")) + "</p>" +
-      (notice ? '<p class="gate-msg" role="status">' + esc(notice) + "</p>" : "") +
+      '<button data-g="lang" data-v="en" aria-pressed="' + (lang === "en") + '">EN</button></div>' +
+      (title ? "<h2>" + esc(title) + "</h2>" : "") +
+      (sub ? '<p class="auth-sub">' + esc(sub) + "</p>" : "") +
+      '<p class="gate-msg" role="status"' + (notice ? "" : " hidden") + ">" + esc(notice) + "</p>" +
       inner +
-      "</div>";
-    var first = gate.querySelector("input");
+      "</div></main></div>";
+    var first = gate.querySelector(".auth-box input");
     if (first) first.focus();
   }
 
@@ -129,82 +189,105 @@
     );
   }
 
+  function passField(id, label, extra) {
+    return (
+      '<label class="field" for="' + id + '"><span>' + esc(label) + "</span>" +
+      '<span class="pw"><input id="' + id + '" type="password" ' + (extra || "") + " required>" +
+      '<button type="button" class="eye" data-g="eye" aria-label="' + esc(t("showPassword")) + '" aria-pressed="false">' + EYE + "</button></span></label>"
+    );
+  }
+
+  function submitBtn(label) {
+    return '<button class="btn primary big auth-go" type="submit">' + esc(label) + "</button>";
+  }
+
+  function switchLine(text, to, label) {
+    return '<p class="auth-switch">' + esc(text) + ' <button class="link" type="button" data-g="mode" data-v="' + to + '">' + esc(label) + "</button></p>";
+  }
+
   function showAuth() {
     gate.hidden = false;
-    var tabs =
-      '<div class="seg gate-tabs" role="group">' +
-      '<button data-g="mode" data-v="signin" aria-pressed="' + (mode === "signin") + '">' + esc(t("signin")) + "</button>" +
-      '<button data-g="mode" data-v="signup" aria-pressed="' + (mode === "signup") + '">' + esc(t("signup")) + "</button></div>";
     if (mode === "signin") {
-      card(
-        tabs +
-          '<form data-g="signin">' +
+      layout(
+        t("signinTitle"),
+        t("signinSub"),
+        '<form data-g="signin" novalidate>' +
           field("gEmail", t("email"), "email", 'autocomplete="email"') +
-          field("gPass", t("password"), "password", 'autocomplete="current-password"') +
-          '<button class="btn primary big" type="submit">' + esc(t("signin")) + "</button></form>" +
-          '<button class="link gate-alt" data-g="mode" data-v="forgot">' + esc(t("forgot")) + "</button>"
+          passField("gPass", t("password"), 'autocomplete="current-password"') +
+          '<button class="link auth-forgot" type="button" data-g="mode" data-v="forgot">' + esc(t("forgot")) + "</button>" +
+          submitBtn(t("signin")) +
+          "</form>" +
+          switchLine(t("noAccount"), "signup", t("signup"))
       );
     } else if (mode === "signup") {
-      card(
-        tabs +
-          '<form data-g="signup">' +
+      layout(
+        t("signupTitle"),
+        t("signupSub"),
+        '<form data-g="signup" novalidate>' +
           field("gEmail", t("email"), "email", 'autocomplete="email"') +
-          field("gPass", t("passwordNew"), "password", 'autocomplete="new-password" minlength="8"') +
-          field("gCode", t("code"), "text", 'autocomplete="off" autocapitalize="characters" spellcheck="false"') +
+          passField("gPass", t("passwordNew"), 'autocomplete="new-password" minlength="8"') +
+          passField("gPass2", t("confirmPassword"), 'autocomplete="new-password" minlength="8"') +
+          field("gCode", t("code"), "text", 'autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="UPSKILL-XXXXXX"') +
           '<p class="gate-help">' + esc(t("codeHelp")) + "</p>" +
-          '<button class="btn primary big" type="submit">' + esc(t("signup")) + "</button></form>"
+          submitBtn(t("signup")) +
+          "</form>" +
+          switchLine(t("haveAccount"), "signin", t("signin"))
       );
     } else if (mode === "forgot") {
-      card(
-        '<form data-g="forgot">' +
+      layout(
+        t("forgotTitle"),
+        t("forgotSub"),
+        '<form data-g="forgot" novalidate>' +
           field("gEmail", t("email"), "email", 'autocomplete="email"') +
-          '<button class="btn primary big" type="submit">' + esc(t("sendReset")) + "</button></form>" +
-          '<button class="link gate-alt" data-g="mode" data-v="signin">' + esc(t("back")) + "</button>"
+          submitBtn(t("sendReset")) +
+          "</form>" +
+          '<p class="auth-switch"><button class="link" type="button" data-g="mode" data-v="signin">← ' + esc(t("back")) + "</button></p>"
       );
     } else if (mode === "recover") {
-      card(
-        '<form data-g="recover">' +
-          field("gPass", t("newPassword"), "password", 'autocomplete="new-password" minlength="8"') +
-          '<button class="btn primary big" type="submit">' + esc(t("savePassword")) + "</button></form>"
+      layout(
+        t("recoverTitle"),
+        t("recoverSub"),
+        '<form data-g="recover" novalidate>' +
+          passField("gPass", t("newPassword"), 'autocomplete="new-password" minlength="8"') +
+          passField("gPass2", t("confirmPassword"), 'autocomplete="new-password" minlength="8"') +
+          submitBtn(t("savePassword")) +
+          "</form>"
       );
     }
   }
 
   function showUnlock() {
     gate.hidden = false;
-    card(
-      "<h2>" + esc(t("unlockTitle")) + "</h2><p>" + esc(t("unlockText")) + "</p>" +
-        '<form data-g="unlock">' +
-        field("gCode", t("code"), "text", 'autocomplete="off" autocapitalize="characters" spellcheck="false"') +
-        '<button class="btn primary big" type="submit">' + esc(t("unlock")) + "</button></form>" +
+    layout(
+      t("unlockTitle"),
+      t("unlockText"),
+      '<form data-g="unlock" novalidate>' +
+        field("gCode", t("code"), "text", 'autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="UPSKILL-XXXXXX"') +
+        submitBtn(t("unlock")) +
+        "</form>" +
         '<p class="gate-help">' + esc(t("paidSoon")) + "</p>" +
-        '<button class="link gate-alt" data-g="signout">' + esc(t("signout")) + "</button>"
+        '<p class="auth-switch"><button class="link" type="button" data-g="signout">' + esc(t("signout")) + "</button></p>"
     );
   }
 
   function showMessage(msg) {
     gate.hidden = false;
     notice = msg;
-    card('<button class="link gate-alt" data-g="signout">' + esc(t("signout")) + "</button>");
+    layout("", "", '<p class="auth-switch"><button class="link" type="button" data-g="signout">' + esc(t("signout")) + "</button></p>");
   }
 
   function showLoading() {
     gate.hidden = false;
-    gate.innerHTML = '<div class="gate-card gate-loading"><span class="spin" aria-hidden="true"></span><p>' + esc(t("loading")) + "</p></div>";
+    gate.innerHTML = '<div class="auth-loading"><span class="logo" aria-hidden="true">CSA</span><span class="spin" aria-hidden="true"></span><p>' + esc(t("loading")) + "</p></div>";
   }
 
   function fail(msg) {
     notice = msg;
-    if (gate.querySelector("form")) {
-      var m = gate.querySelector(".gate-msg");
-      if (m) m.textContent = msg;
-      else {
-        var p = document.createElement("p");
-        p.className = "gate-msg";
-        p.setAttribute("role", "status");
-        p.textContent = msg;
-        gate.querySelector(".gate-tag").after(p);
-      }
+    var m = gate.querySelector(".gate-msg");
+    if (m) {
+      m.textContent = msg;
+      m.hidden = false;
+      m.classList.add("err");
     }
   }
 
@@ -428,6 +511,12 @@
       showAuth();
     } else if (a === "signout") {
       signOut();
+    } else if (a === "eye") {
+      var inp = el.parentNode.querySelector("input");
+      var show = inp.type === "password";
+      inp.type = show ? "text" : "password";
+      el.setAttribute("aria-pressed", show ? "true" : "false");
+      el.setAttribute("aria-label", show ? t("hidePassword") : t("showPassword"));
     }
   });
 
@@ -439,6 +528,7 @@
     var email = (f.querySelector("#gEmail") || {}).value;
     var pass = (f.querySelector("#gPass") || {}).value;
     var code = (f.querySelector("#gCode") || {}).value;
+    var pass2 = (f.querySelector("#gPass2") || {}).value;
     busy(f, true);
     var done = function () {
       busy(f, false);
@@ -458,6 +548,11 @@
     } else if (a === "signup") {
       if ((pass || "").length < 8) {
         fail(t("shortPassword"));
+        done();
+        return;
+      }
+      if (pass !== pass2) {
+        fail(t("mismatch"));
         done();
         return;
       }
@@ -500,6 +595,11 @@
         done();
         return;
       }
+      if (pass !== pass2) {
+        fail(t("mismatch"));
+        done();
+        return;
+      }
       sb.auth
         .updateUser({ password: pass })
         .then(function (r) {
@@ -531,7 +631,8 @@
 
   if (!window.supabase || !cfg.supabaseUrl || !cfg.supabaseKey) {
     gate.hidden = false;
-    gate.innerHTML = '<div class="gate-card"><p class="gate-msg">' + esc(t("noConfig")) + "</p></div>";
+    notice = t("noConfig");
+    layout("", "", "");
     return;
   }
 
