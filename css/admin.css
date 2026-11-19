@@ -1,0 +1,98 @@
+.admin {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin h1 {
+  font: 600 28px/1.1 var(--display);
+  margin: 0;
+}
+
+.admin .head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin .head .sp {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.admin .panel h2 {
+  font: 600 18px/1.2 var(--display);
+  margin: 0 0 12px;
+}
+
+.admin .grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.admin .field {
+  margin: 0;
+}
+
+.admin input,
+.admin select {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.admin input[type="file"] {
+  padding: 6px;
+}
+
+.admin table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.admin th,
+.admin td {
+  text-align: left;
+  padding: 8px 6px;
+  border-top: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.admin th {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-top: 0;
+}
+
+.admin code {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.admin .log {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  color: var(--ink-2);
+  margin: 12px 0 0;
+}
+
+.admin .muted {
+  color: var(--ink-3);
+  font-size: 13px;
+}
