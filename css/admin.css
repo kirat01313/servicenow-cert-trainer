@@ -96,3 +96,48 @@
   color: var(--ink-3);
   font-size: 13px;
 }
+
+.admin-card {
+  width: min(420px, 100%);
+  margin: 10vh auto 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 700 18px/1 var(--display);
+}
+
+.admin-top .logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--lime);
+  color: var(--lime-ink);
+  display: grid;
+  place-items: center;
+  font: 700 12px/1 var(--display);
+}
+
+.admin-card .gate-msg {
+  margin: 0;
+}
+
+.admin-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-card .btn.big {
+  justify-content: center;
+}

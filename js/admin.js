@@ -2,6 +2,9 @@
   "use strict";
 
   var cfg = window.APP_CONFIG || {};
+  try {
+    document.documentElement.dataset.theme = localStorage.getItem("csa2-theme") || "light";
+  } catch (e) {}
   var root = document.getElementById("admin");
   var QUESTIONS_PER_PART = 90;
   var sb = null;
@@ -15,7 +18,7 @@
   }
 
   function say(msg) {
-    root.innerHTML = '<div class="gate-card"><p class="gate-msg">' + esc(msg) + "</p></div>";
+    root.innerHTML = '<div class="admin-card"><p class="gate-msg">' + esc(msg) + "</p></div>";
   }
 
   function randomCode(prefix) {
@@ -29,7 +32,7 @@
 
   function showSignIn(msg) {
     root.innerHTML =
-      '<div class="gate-card"><div class="gate-top"><span class="logo">CSA</span><b>Administração</b></div>' +
+      '<div class="admin-card"><div class="admin-top"><span class="logo">CSA</span><b>Administração</b></div>' +
       (msg ? '<p class="gate-msg">' + esc(msg) + "</p>" : "") +
       '<form id="signin"><label class="field"><span>Email</span><input id="aEmail" type="email" required></label>' +
       '<label class="field"><span>Palavra-passe</span><input id="aPass" type="password" required></label>' +
