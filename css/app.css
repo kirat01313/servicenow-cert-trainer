@@ -671,3 +671,10 @@ details.topic[open]>summary span{display:none}
 .itip{position:fixed;z-index:1000;max-width:290px;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);font:400 12.5px/1.45 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink-2);pointer-events:none}
 .lbt .lbview{font-family:var(--sans)}
 .dlg .cal .r{grid-template-columns:minmax(0,220px) 1fr 52px}
+
+/* montar sessão: format switch across the whole width */
+.seg.fmtseg{display:grid;grid-template-columns:repeat(3,1fr);width:100%;border-radius:11px}
+.seg.fmtseg button{padding:10px 12px;font-size:13.5px;text-align:center}
+.seg.fmtseg button+button{border-left:1px solid var(--line)}
+.mk-death{margin:4px 0 0;padding:12px 14px;border-radius:11px;background:var(--sunk);font-size:13.5px;line-height:1.5;color:var(--ink-2)}
+@media (max-width:560px){.seg.fmtseg{grid-template-columns:1fr}.seg.fmtseg button+button{border-left:0;border-top:1px solid var(--line)}}
