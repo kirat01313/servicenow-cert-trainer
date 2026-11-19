@@ -824,6 +824,61 @@ function donutHTML(segs,label){
 
 /* ---------------- KPIs (como os indicadores do Performance Analytics: valor, meta, tendência) ---------------- */
 function kpiStatus(v,tg,higher){if(v==null)return "";if(higher)return v>=tg?"ok":v>=tg*0.85?"warn":"bad";return v<=tg?"ok":v<=tg*1.15?"warn":"bad";}
+/* ---------------- explicações (botão «i» com dica ao passar o rato) ---------------- */
+function HELP(){var w=function(k){return Math.round(SCORE_W[k]*100);};return {
+  score:TL("Nota de 0 a 10 que estima quão preparado estás para o exame. Junta 6 componentes com pesos: acerto 25%, simulados 25%, cobertura 15%, retenção 15%, calibração 10% e ritmo 10%. 8 ou mais, com 80% em três simulados seguidos, é bom sinal para marcar o exame.","A 0 to 10 score that estimates how ready you are for the exam. It combines 6 weighted parts: accuracy 25%, practice exams 25%, coverage 15%, retention 15%, calibration 10% and pace 10%. 8 or more, with 80% in three practice exams in a row, is a good sign to book the exam."),
+  readiness:TL("Estimativa da nota se o exame fosse hoje. Em cada domínio conta as questões certas na última tentativa sobre o total do domínio (as que ainda não viste contam como erradas) e pesa pelo peso do domínio no blueprint.","An estimate of your score if the exam were today. In each domain it counts the questions right on the last attempt over the domain total (questions not seen yet count as wrong) and weights it by the domain’s blueprint weight."),
+  coverage:TL("Percentagem das questões ativas do banco a que já respondeste pelo menos uma vez. Mede quanto do conteúdo já viste, não se acertaste.","Share of the active questions in the bank you’ve answered at least once. It measures how much of the content you’ve seen, not whether you got it right."),
+  acc7:TL("Respostas certas sobre respostas dadas nos últimos 7 dias, contando repetições. Mostra a forma recente.","Correct answers over answers given in the last 7 days, repeats included. It shows your recent form."),
+  exams:TL("Média dos últimos 3 simulados válidos (30 ou mais questões, com pelo menos 80% respondidas). As questões em branco contam como erradas. Meta: 80%.","Average of the last 3 valid practice exams (30 or more questions, with at least 80% answered). Blank questions count as wrong. Target: 80%."),
+  streak:TL("Dias seguidos com pelo menos uma questão respondida. Se hoje ainda não estudaste, conta até ontem.","Days in a row with at least one question answered. If you haven’t studied today yet, it counts up to yesterday."),
+  updated:TL("Quando as estatísticas foram enviadas pela última vez. Atualizam-se sozinhas uns segundos depois de responderes a uma questão.","When the stats were last sent. They update by themselves a few seconds after you answer a question."),
+  answers:TL("Todas as respostas dadas desde o início, incluindo repetições da mesma questão.","Every answer given since the start, including repeats of the same question."),
+  studied:TL("Número de dias diferentes com pelo menos uma resposta.","Number of different days with at least one answer."),
+  avgms:TL("Média do tempo gasto nas últimas 200 respostas (cada uma limitada a 5 minutos). No exame tens 1:30 por questão.","Average time spent on the last 200 answers (each capped at 5 minutes). In the exam you have 1:30 per question."),
+  sure:TL("Das respostas marcadas «tenho a certeza», a percentagem que estava certa. Perto de 100% quer dizer que a confiança bate certo com o conhecimento. Só aparece a partir de 10 respostas.","Of the answers marked «I’m sure», the share that was right. Close to 100% means confidence matches knowledge. Shows up after 10 answers."),
+  pos:TL("O teu lugar entre os colegas visíveis da mesma certificação, ordenado pelo índice de confiança.","Your place among the visible classmates of the same certification, sorted by the confidence index."),
+  order:TL("Ordena pelo índice de confiança. Em caso de empate, desempata pela prontidão, depois pelo banco visto e por fim pelo número de respostas.","Sorted by the confidence index. Ties are broken by readiness, then bank seen, then number of answers."),
+  dom:TL("Cobertura e acerto em cada um dos domínios do exame, com o peso que cada um tem.","Coverage and accuracy in each exam domain, with the weight each one has."),
+  w:TL("Quanto o domínio pesa no exame, segundo o blueprint oficial.","How much the domain weighs in the exam, according to the official blueprint."),
+  seen:TL("Percentagem das questões deste domínio já respondidas pelo menos uma vez.","Share of this domain’s questions answered at least once."),
+  acc:TL("Das questões deste domínio já vistas, a percentagem certa na última tentativa.","Of this domain’s questions already seen, the share right on the last attempt."),
+  you:TL("O teu acerto no mesmo domínio, para comparares.","Your accuracy in the same domain, for comparison."),
+  M:TL("Vale ","Worth ")+w("M")+TL("% do índice. Questões certas na última tentativa sobre as vistas, por domínio, com o peso do blueprint.","% of the index. Questions right on the last attempt over those seen, per domain, with the blueprint weight."),
+  X:TL("Vale ","Worth ")+w("X")+TL("% do índice. Média dos últimos 3 simulados válidos. Sem nenhum simulado completo fica a zero.","% of the index. Average of the last 3 valid practice exams. With no complete practice exam it stays at zero."),
+  C:TL("Vale ","Worth ")+w("C")+TL("% do índice. Questões já vistas sobre o total, por domínio, com o peso do blueprint.","% of the index. Questions seen over the total, per domain, with the blueprint weight."),
+  R:TL("Vale ","Worth ")+w("R")+TL("% do índice. Questões certas que já sobreviveram a revisões espaçadas (caixa 3 ou mais), sobre as vistas. Mede o que fica na memória.","% of the index. Correct questions that have already survived spaced reviews (box 3 or higher), over those seen. It measures what sticks."),
+  K:TL("Vale ","Worth ")+w("K")+TL("% do índice. 60% vem do acerto quando dizes «tenho a certeza» (a partir de 10 respostas) e 40% de quão pouco recorres ao palpite.","% of the index. 60% comes from accuracy when you say «I’m sure» (after 10 answers) and 40% from how rarely you guess."),
+  P:TL("Vale ","Worth ")+w("P")+TL("% do índice. Tempo médio por questão: 1:00 ou menos vale tudo, 2:00 ou mais vale zero, e pelo meio desce a direito.","% of the index. Average time per question: 1:00 or less scores full, 2:00 or more scores zero, and in between it falls in a straight line."),
+  exlist:TL("Os últimos 6 simulados válidos e a nota de cada um. A verde, os de 80% ou mais.","The last 6 valid practice exams and the score of each. In green, those at 80% or more."),
+  activity:TL("Questões respondidas por dia nos últimos 14 dias. Passa o rato numa barra para veres o dia e o número.","Questions answered per day over the last 14 days. Hover a bar to see the day and the number."),
+  kacc7:TL("Respostas certas sobre respostas dadas nos últimos 7 dias, contando repetições. A seta compara com os 7 dias anteriores. Meta: 80%.","Correct answers over answers given in the last 7 days, repeats included. The arrow compares with the previous 7 days. Target: 80%."),
+  kcov:TL("Percentagem das questões ativas do banco a que já respondeste pelo menos uma vez. Em baixo, quantas questões novas viste nos últimos 7 dias.","Share of the active questions in the bank you’ve answered at least once. Below, how many new questions you saw in the last 7 days."),
+  kpace:TL("Média do tempo por questão nas últimas 100 respostas (cada uma limitada a 5 minutos). Meta: 1:30, o ritmo do exame (60 questões em 90 minutos).","Average time per question over the last 100 answers (each capped at 5 minutes). Target: 1:30, the exam pace (60 questions in 90 minutes)."),
+  kdays:TL("Em quantos dos últimos 7 dias respondeste a pelo menos uma questão. Meta: 5 dias por semana.","On how many of the last 7 days you answered at least one question. Target: 5 days a week."),
+  khc:TL("Questões que erraste depois de dizer «tenho a certeza» e que ainda não voltaste a acertar. São as mais perigosas: achas que sabes e não sabes. Meta: 0.","Questions you got wrong after saying «I’m sure» and haven’t got right again yet. They’re the most dangerous: you think you know and you don’t. Target: 0.")
+};}
+function info(t){return '<button type="button" class="info" data-tip="'+esc(t)+'" aria-label="'+esc(t)+'">i</button>';}
+(function(){
+  var tip=null;
+  function hide(){if(tip){tip.remove();tip=null;}}
+  function show(el){
+    hide(); tip=document.createElement("div"); tip.className="itip"; tip.setAttribute("role","tooltip"); tip.textContent=el.getAttribute("data-tip");
+    (el.closest("dialog")||document.body).appendChild(tip);
+    var r=el.getBoundingClientRect(), w=tip.offsetWidth, h=tip.offsetHeight;
+    var x=Math.max(8,Math.min(window.innerWidth-w-8,r.left+r.width/2-w/2)), y=r.top-h-8; if(y<8)y=r.bottom+8;
+    tip.style.left=x+"px"; tip.style.top=y+"px";
+  }
+  function inf(e){return e.target&&e.target.closest?e.target.closest(".info"):null;}
+  document.addEventListener("mouseover",function(e){var el=inf(e);if(el)show(el);});
+  document.addEventListener("mouseout",function(e){if(inf(e))hide();});
+  document.addEventListener("focusin",function(e){var el=inf(e);if(el)show(el);});
+  document.addEventListener("focusout",function(e){if(inf(e))hide();});
+  document.addEventListener("click",function(e){var el=inf(e);if(el){e.preventDefault();e.stopPropagation();show(el);}},true);
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")hide();});
+  window.addEventListener("scroll",hide,true);
+})();
+
 function kpiList(){
   var now=Date.now(),days14=[];for(var i=13;i>=0;i--)days14.push(now-i*DAY);
   var t7=trail(now,7),p7=trail(now-7*DAY,7);
@@ -838,21 +893,21 @@ function kpiList(){
   var cum=0,before=0,ks=Object.keys(S.days);ks.forEach(function(k){if(new Date(k+"T00:00:00")<sod(days14[0]))before+=S.days[k].nw||0;});cum=before;
   var covS=days14.map(function(t){cum+=(S.days[dkey(t)]||{}).nw||0;return Math.min(100,100*cum/total);});
   return [
-    {n:TL("Taxa de acerto · 7 dias","Accuracy · 7 days"),v:acc,f:acc==null?"—":Math.round(acc)+"%",tg:80,tf:TL("Meta 80%","Target 80%"),hi:true,d:acc!=null&&accP!=null?acc-accP:null,du:" p.p.",sp:days14.map(function(t){var d=S.days[dkey(t)];return d&&d.q?100*d.ok/d.q:null;}),mx:100},
-    {n:TL("Índice de confiança","Confidence index"),v:cs.score,f:fmt1(cs.score),tg:8,tf:TL("Meta 8,0","Target 8.0"),hi:true,d:null,sp:days14.map(function(t){var d=S.days[dkey(t)];return d&&d.sc!=null?d.sc/10:null;}),mx:10},
-    {n:TL("Cobertura do banco","Bank coverage"),v:cov,f:Math.round(cov)+"%",tg:100,tf:seen+TL(" de "," of ")+total+TL(" vistas"," seen"),hi:true,d:nw7,du:TL(" novas em 7 dias"," new in 7 days"),sp:covS,mx:100,abs:true},
-    {n:TL("Prontidão ponderada","Weighted readiness"),v:rd,f:rd+"%",tg:80,tf:TL("Meta 80% · peso do blueprint","Target 80% · blueprint weight"),hi:true,d:null,sp:days14.map(function(t){var d=S.days[dkey(t)];return d&&d.rd!=null?d.rd:null;}),mx:100},
-    {n:TL("Ritmo por questão","Pace per question"),v:am==null?null:am/1000,f:am==null?"—":mmss(am),tg:90,tf:TL("Meta 1:30 (ritmo do exame)","Target 1:30 (exam pace)"),hi:false,d:null,sp:paceDays,mx:180},
-    {n:TL("Média dos simulados","Practice exam average"),v:exAvg,f:exAvg==null?"—":Math.round(exAvg)+"%",tg:80,tf:exL.length?TL("Últimos ","Last ")+exL.length+TL(" · meta 80%"," · target 80%"):TL("Ainda sem simulados completos","No complete practice exams yet"),hi:true,d:null,sp:ex.slice(-8).map(examPct),mx:100},
-    {n:TL("Dias de estudo · 7 dias","Study days · 7 days"),v:act7,f:act7+"/7",tg:5,tf:TL("Meta 5 dias por semana","Target 5 days a week"),hi:true,d:null,sp:days14.map(function(t){var d=S.days[dkey(t)];return d?d.q||0:0;})},
-    {n:TL("Erros confiantes por resolver","Open confident mistakes"),v:hc,f:String(hc),tg:0,tf:TL("Meta 0","Target 0"),hi:false,d:null,sp:null}
+    {n:TL("Taxa de acerto · 7 dias","Accuracy · 7 days"),h:"kacc7",v:acc,f:acc==null?"—":Math.round(acc)+"%",tg:80,tf:TL("Meta 80%","Target 80%"),hi:true,d:acc!=null&&accP!=null?acc-accP:null,du:" p.p.",sp:days14.map(function(t){var d=S.days[dkey(t)];return d&&d.q?100*d.ok/d.q:null;}),mx:100},
+    {n:TL("Índice de confiança","Confidence index"),h:"score",v:cs.score,f:fmt1(cs.score),tg:8,tf:TL("Meta 8,0","Target 8.0"),hi:true,d:null,sp:days14.map(function(t){var d=S.days[dkey(t)];return d&&d.sc!=null?d.sc/10:null;}),mx:10},
+    {n:TL("Cobertura do banco","Bank coverage"),h:"kcov",v:cov,f:Math.round(cov)+"%",tg:100,tf:seen+TL(" de "," of ")+total+TL(" vistas"," seen"),hi:true,d:nw7,du:TL(" novas em 7 dias"," new in 7 days"),sp:covS,mx:100,abs:true},
+    {n:TL("Prontidão ponderada","Weighted readiness"),h:"readiness",v:rd,f:rd+"%",tg:80,tf:TL("Meta 80% · peso do blueprint","Target 80% · blueprint weight"),hi:true,d:null,sp:days14.map(function(t){var d=S.days[dkey(t)];return d&&d.rd!=null?d.rd:null;}),mx:100},
+    {n:TL("Ritmo por questão","Pace per question"),h:"kpace",v:am==null?null:am/1000,f:am==null?"—":mmss(am),tg:90,tf:TL("Meta 1:30 (ritmo do exame)","Target 1:30 (exam pace)"),hi:false,d:null,sp:paceDays,mx:180},
+    {n:TL("Média dos simulados","Practice exam average"),h:"exams",v:exAvg,f:exAvg==null?"—":Math.round(exAvg)+"%",tg:80,tf:exL.length?TL("Últimos ","Last ")+exL.length+TL(" · meta 80%"," · target 80%"):TL("Ainda sem simulados completos","No complete practice exams yet"),hi:true,d:null,sp:ex.slice(-8).map(examPct),mx:100},
+    {n:TL("Dias de estudo · 7 dias","Study days · 7 days"),h:"kdays",v:act7,f:act7+"/7",tg:5,tf:TL("Meta 5 dias por semana","Target 5 days a week"),hi:true,d:null,sp:days14.map(function(t){var d=S.days[dkey(t)];return d?d.q||0:0;})},
+    {n:TL("Erros confiantes por resolver","Open confident mistakes"),h:"khc",v:hc,f:String(hc),tg:0,tf:TL("Meta 0","Target 0"),hi:false,d:null,sp:null}
   ];
 }
 function kpiHTML(k){
   var st=k.hi===false&&k.tg===0?(k.v===0?"ok":k.v<=3?"warn":"bad"):kpiStatus(k.v,k.tg,k.hi);
   var pill=st?'<span class="pill '+(st==="ok"?"ok":st==="warn"?"warn":"bad")+'">'+(st==="ok"?TL("Na meta","On target"):st==="warn"?TL("Perto","Close"):TL("Abaixo","Below"))+"</span>":TL('<span class="pill">Sem dados</span>','<span class="pill">No data</span>');
   var dl=k.d==null?"":k.abs?'<span class="kd flat">+'+k.d+(k.du||"")+"</span>":'<span class="kd '+(k.d>0.5?"up":k.d<-0.5?"down":"flat")+'">'+(k.d>0?"▲ +":k.d<0?"▼ ":"")+Math.round(k.d)+(k.du||"")+TL(" vs semana anterior</span>"," vs previous week</span>");
-  return '<div class="kpi"><div class="kh"><span class="kn">'+esc(k.n)+"</span>"+pill+'</div><div class="kv">'+k.f+'</div><div class="kt">'+esc(k.tf)+"</div>"+dl+(k.sp?spark(k.sp,k.hi===false&&k.tg===0?null:k.tg,k.mx):"")+"</div>";
+  return '<div class="kpi"><div class="kh"><span class="kn">'+esc(k.n)+(k.h?info(HELP()[k.h]):"")+"</span>"+pill+'</div><div class="kv">'+k.f+'</div><div class="kt">'+esc(k.tf)+"</div>"+dl+(k.sp?spark(k.sp,k.hi===false&&k.tg===0?null:k.tg,k.mx):"")+"</div>";
 }
 
 /* ---------------- evolução e projeção ---------------- */
@@ -1229,71 +1284,141 @@ function vRanking(){
     (rows?'<div class="wrlist">'+rows+"</div>":'<p class="small muted" style="margin:0">'+(rk.tab==="bad"?TL("Ainda não erraste nenhuma questão aqui.","You haven’t got any question wrong here yet."):TL("Ainda não acertaste nenhuma questão aqui.","You haven’t got any question right here yet."))+"</p>")+"</section>";
 }
 
-/* ---------------- ranking global (só na versão online; entra só quem quiser) ---------------- */
+/* ---------------- ranking global (só na versão online; entra quem já respondeu a questões) ---------------- */
+function lbAnswers(){var n=0;for(var k in S.days)n+=S.days[k].q||0;return n;}
+function lbProfile(){
+  var ds=domStats(), cs=confScore(), parts={}, days=[], t=Date.now(), studied=0, first=null;
+  cs.parts.forEach(function(p){parts[p.k]=Math.round(p.v*100);});
+  for(var j=13;j>=0;j--){var d=S.days[dkey(t-j*DAY)];days.push(d?d.q||0:0);}
+  for(var k in S.days){if(S.days[k].q){studied++;if(!first||k<first)first=k;}}
+  var cal=S.cal.s||[0,0], tot=(S.cal.s[1]||0)+(S.cal.a[1]||0)+(S.cal.p[1]||0), am=avgMs(200);
+  return {v:1, dom:D.domains.map(function(d){var o=ds[d.id];return [d.id,o.t,o.seen,o.c];}), parts:parts, days:days, studied:studied,
+    first:first?new Date(first+"T12:00:00").getTime():null, exams:eligibleExams().slice(-6).map(function(e){return [e.at,Math.round(examPct(e))];}),
+    avg_ms:am==null?null:Math.round(am), sure:cal[1]>=10?Math.round(100*cal[0]/cal[1]):null, guess:tot?Math.round(100*(S.cal.p[1]||0)/tot):null};
+}
 function lbStats(){
-  var cs=confScore(), total=pool(false).length, seen=strictSeen(), t7=trail(Date.now(),7), ex=eligibleExams().slice(-3), answers=0;
-  for(var k in S.days)answers+=S.days[k].q||0;
+  var cs=confScore(), total=pool(false).length, seen=strictSeen(), t7=trail(Date.now(),7), ex=eligibleExams().slice(-3);
   return {score:Math.round(cs.score*10)/10, readiness:readiness(domStats()), coverage:total?Math.round(100*seen/total):0,
     accuracy7:t7.q?Math.round(100*t7.ok/t7.q):null, exams_avg:ex.length?Math.round(ex.reduce(function(a,e){return a+examPct(e);},0)/ex.length):null,
-    streak:streak(), answers:answers};
+    streak:streak(), answers:lbAnswers(), profile:lbProfile()};
+}
+function lbDefaultName(){
+  var B=window.CSA_BACKEND, e=(B&&B.email)||"";
+  var n=e.split("@")[0].replace(/[._\-+0-9]+/g," ").trim().split(/\s+/).map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(" ").slice(0,24).trim();
+  return n.length>=2?n:TL("Aluno ","Student ")+String((B&&B.uid)||"").slice(0,4);
+}
+function lbErrMsg(e){
+  var m=String((e&&(e.message||e.code))||"");
+  return /leaderboard|PGRST205|schema cache|does not exist|column/i.test(m)?TL("O ranking ainda não está ativo no servidor. Avisa o administrador.","The ranking isn’t set up on the server yet. Tell the admin."):TL("Não consegui guardar. Tenta outra vez.","Couldn’t save. Try again.");
+}
+function lbPush(extra){
+  var B=window.CSA_BACKEND; if(!B||!D)return Promise.resolve();
+  var row=lbStats(), m=ui.lbMine;
+  row.display_name=m?m.display_name:lbDefaultName(); row.hidden=m?!!m.hidden:false;
+  if(extra)for(var k in extra)row[k]=extra[k];
+  return B.lbSave(row).then(function(r){ui.lbMine=r||row;ui.lbRows=null;if(view==="global")render();});
 }
 var lbTimer=null;
 function lbSchedule(){
-  var B=window.CSA_BACKEND; if(!B||!ui.lbMine)return;
+  if(!window.CSA_BACKEND||!ui.lbReady)return;
+  if(!ui.lbMine&&!lbAnswers())return;
   clearTimeout(lbTimer);
-  lbTimer=setTimeout(function(){
-    var row=lbStats(); row.display_name=ui.lbMine.display_name;
-    B.lbSave(row).then(function(r){ui.lbMine=r||row;ui.lbRows=null;if(view==="global")render();}).catch(function(){});
-  },4000);
+  lbTimer=setTimeout(function(){lbPush().catch(function(){});},4000);
 }
 function lbName(){var el=$("lbName");return el?el.value.trim().replace(/\s+/g," "):"";}
-function lbJoin(){
-  var B=window.CSA_BACKEND, name=lbName(); if(!B)return;
+function lbSaveName(){
+  var name=lbName();
   if(name.length<2||name.length>24){toast(TL("O nome tem de ter entre 2 e 24 caracteres.","The name must have 2 to 24 characters."));return;}
-  var row=lbStats(); row.display_name=name;
-  B.lbSave(row).then(function(r){ui.lbMine=r||row;ui.lbRename=false;ui.lbRows=null;render();toast(TL("Estás no ranking como ","You’re in the ranking as ")+name+".");})
-  .catch(function(){toast(TL("Não consegui guardar. Tenta outra vez.","Couldn’t save. Try again."));});
+  lbPush({display_name:name}).then(function(){ui.lbRename=false;render();toast(TL("Agora apareces como ","You now appear as ")+name+".");})
+  .catch(function(e){toast(lbErrMsg(e));});
 }
-function lbLeave(){
-  var B=window.CSA_BACKEND; if(!B)return;
-  B.lbLeave().then(function(){ui.lbMine=null;ui.armed=null;ui.lbRows=null;render();toast(TL("Saíste do ranking.","You left the ranking."));})
-  .catch(function(){toast(TL("Não consegui sair do ranking. Tenta outra vez.","Couldn’t leave the ranking. Try again."));});
+function lbSetHidden(h){
+  lbPush({hidden:h}).then(function(){ui.armed=null;render();toast(h?TL("Já não apareces no ranking.","You no longer appear in the ranking."):TL("Voltaste a aparecer no ranking.","You’re back in the ranking."));})
+  .catch(function(e){toast(lbErrMsg(e));});
 }
+function lbNum(x){x=Number(x);return isFinite(x)?x:null;}
+function lbPctTxt(x){x=lbNum(x);return x==null?"—":Math.round(x)+"%";}
+function lbBar(label,v,txt){v=lbNum(v);var w=v==null?0:Math.max(0,Math.min(100,v));
+  return '<div class="r"><span>'+label+'</span><div class="bar"><i class="b-m" style="width:'+w+'%"></i></div><span class="num">'+txt+"</span></div>";}
+function lbProfileHTML(r){
+  var H=HELP(), B=window.CSA_BACKEND, p=r.profile&&typeof r.profile==="object"?r.profile:{}, isMe=r.user_id===B.uid, mine=isMe?null:lbProfile();
+  var rows=lbSorted(), pos=-1; rows.forEach(function(x,i){if(x.user_id===r.user_id)pos=i;});
+  var first=lbNum(p.first), am=lbNum(p.avg_ms);
+  var sub='<p class="small muted pf-sub">'+(pos>=0?(pos+1)+"º "+TL("de ","of ")+rows.length+" · ":"")+TL("atualizado a ","updated ")+dmy(r.updated_at)+(first?" · "+TL("a estudar desde ","studying since ")+dmy(first):"")+"</p>";
+  var kv=[[fmt1(lbNum(r.score)||0),TL("índice de confiança","confidence index"),"score"],[lbPctTxt(r.readiness),TL("prontidão","readiness"),"readiness"],[lbPctTxt(r.coverage),TL("do banco visto","of the bank seen"),"coverage"],
+    [lbPctTxt(r.accuracy7),TL("acerto nos últimos 7 dias","accuracy, last 7 days"),"acc7"],[lbPctTxt(r.exams_avg),TL("média dos últimos simulados","average of recent exams"),"exams"],[lbNum(r.streak)||0,TL("dias seguidos","day streak"),"streak"],
+    [lbNum(r.answers)||0,TL("respostas no total","answers in total"),"answers"],[lbNum(p.studied)==null?"—":lbNum(p.studied),TL("dias de estudo","study days"),"studied"],[am==null?"—":mmss(am),TL("tempo médio por questão","average time per question"),"avgms"],
+    [lbPctTxt(p.sure),TL("certas quando diz «tenho a certeza»","right when saying «I’m sure»"),"sure"]];
+  var kpis='<div class="kv pf-kv">'+kv.map(function(x){return "<div><b>"+esc(x[0])+"</b><span>"+x[1]+(x[2]?info(H[x[2]]):"")+"</span></div>";}).join("")+"</div>";
+  if(!p.v)return sub+kpis+'<p class="small muted" style="margin:18px 0 0">'+TL("Os detalhes por domínio aparecem quando esta pessoa voltar a estudar.","The per-domain details show up when this person studies again.")+"</p>";
+  var myDom={}; if(mine)mine.dom.forEach(function(d){myDom[d[0]]=d;});
+  var dom=(Array.isArray(p.dom)?p.dom:[]).map(function(d){
+    var dd=D.domains.filter(function(x){return x.id===lbNum(d[0]);})[0]; if(!dd)return "";
+    var t=lbNum(d[1])||0, s=lbNum(d[2])||0, c=lbNum(d[3])||0, me=myDom[dd.id];
+    return "<tr><td>D"+dd.id+" · "+esc(dd.name)+'</td><td class="r">'+dd.w+'%</td><td class="r">'+pct(s,t)+'%</td><td class="r"><b>'+(s?pct(c,s)+"%":"—")+"</b></td>"+(mine?'<td class="r faint">'+(me&&me[2]?pct(me[3],me[2])+"%":"—")+"</td>":"")+"</tr>";
+  }).join("");
+  var domH='<div class="tbl"><table class="bp pf-dom"><thead><tr><th>'+TL("Domínio","Domain")+'</th><th class="r">'+TL("Peso","Weight")+info(H.w)+'</th><th class="r">'+TL("Visto","Seen")+info(H.seen)+'</th><th class="r">'+TL("Acerto","Accuracy")+info(H.acc)+"</th>"+(mine?'<th class="r">'+TL("Tu","You")+info(H.you)+"</th>":"")+"</tr></thead><tbody>"+dom+"</tbody></table></div>";
+  var parts=p.parts||{}, names={}; confScore().parts.forEach(function(x){names[x.k]=x.n;});
+  var partH='<div class="cal">'+["M","X","C","R","K","P"].map(function(k){return lbBar(esc(names[k])+info(H[k]),parts[k],lbPctTxt(parts[k]));}).join("")+"</div>";
+  var ex=(Array.isArray(p.exams)?p.exams:[]).filter(function(e){return Array.isArray(e)&&lbNum(e[1])!=null;});
+  var exH=ex.length?'<div class="pf-exams">'+ex.map(function(e){var v=lbNum(e[1]);return '<span class="tag'+(v>=80?" multi":"")+'"><b>'+v+"%</b> · "+dmy(lbNum(e[0]))+"</span>";}).join("")+"</div>"
+    :'<p class="small muted" style="margin:0">'+TL("Ainda sem simulados completos.","No complete practice exams yet.")+"</p>";
+  var days=(Array.isArray(p.days)?p.days:[]).map(function(x){return lbNum(x)||0;}), mx=Math.max.apply(null,days.concat([1]));
+  var actH='<div class="pf-act" role="img" aria-label="'+TL("Questões respondidas por dia, últimos 14 dias","Questions answered per day, last 14 days")+'">'+days.map(function(n,i){var dt=Date.now()-(days.length-1-i)*DAY;
+    return '<i style="height:'+Math.max(4,Math.round(100*n/mx))+'%"'+(n?"":' class="z"')+' title="'+esc(dmy(dt))+": "+n+'"></i>';}).join("")+'</div><div class="pf-axis small faint"><span>'+TL("há 14 dias","14 days ago")+"</span><span>"+TL("hoje","today")+"</span></div>";
+  return sub+kpis+
+    '<h3 class="pf-h">'+TL("Por domínio do exame","By exam domain")+info(H.dom)+"</h3>"+domH+
+    '<h3 class="pf-h">'+TL("Componentes do índice","Index components")+info(H.score)+"</h3>"+partH+
+    '<div class="pf-two"><div><h3 class="pf-h">'+TL("Últimos simulados","Recent practice exams")+info(H.exlist)+"</h3>"+exH+'</div><div><h3 class="pf-h">'+TL("Atividade","Activity")+info(H.activity)+"</h3>"+actH+"</div></div>";
+}
+function lbOpenProfile(id){
+  var r=(ui.lbRows||[]).filter(function(x){return x.user_id===id;})[0]||(ui.lbMine&&ui.lbMine.user_id===id?ui.lbMine:null);
+  var d=document.getElementById("dlg"); if(!r||!d)return;
+  if(!d.dataset.lb){d.dataset.lb=1;d.addEventListener("close",function(){d.classList.remove("dlg-wide");});}
+  d.classList.add("dlg-wide");
+  d.innerHTML='<div class="dlg-head"><h2>'+esc(r.display_name)+(r.user_id===window.CSA_BACKEND.uid?' <span class="tag">'+TL("tu","you")+"</span>":"")+'</h2><button class="dlg-x" data-g="dlgclose" aria-label="'+TL("Fechar","Close")+'">×</button></div><div class="dlg-body">'+lbProfileHTML(r)+"</div>";
+  if(!d.open)d.showModal();
+}
+function lbSorted(){return (ui.lbRows||[]).slice().sort(function(a,b){return (b.score-a.score)||(b.readiness-a.readiness)||(b.coverage-a.coverage)||(b.answers-a.answers);});}
 function vGlobal(){
   var B=window.CSA_BACKEND;
-  var head='<div class="vh"><div><h1>'+TL("Ranking global","Global ranking")+'</h1><p>'+TL("Quem está mais preparado para o exame, segundo os dados da plataforma. Só aparece quem escolhe entrar.","Who is most ready for the exam, according to the platform’s data. Only people who choose to join appear.")+"</p></div></div>";
+  var head='<div class="vh"><div><h1>'+TL("Ranking global","Global ranking")+'</h1><p>'+TL("Quem está mais preparado para o exame, segundo os dados da plataforma. Entra automaticamente quem já respondeu a questões.","Who is most ready for the exam, according to the platform’s data. Everyone who has answered questions joins automatically.")+"</p></div></div>";
   if(!B)return head+'<div class="empty"><b>'+TL("Disponível só na versão online.","Only available in the online version.")+"</b></div>";
   if(!ui.lbRows){
-    if(!ui.lbLoading){ui.lbLoading=1;B.lbList().then(function(rows){ui.lbRows=rows;ui.lbLoading=0;if(view==="global")render();}).catch(function(){ui.lbRows=[];ui.lbLoading=0;ui.lbErr=1;if(view==="global")render();});}
+    if(!ui.lbLoading){ui.lbLoading=1;B.lbList().then(function(rows){ui.lbRows=rows;ui.lbLoading=0;ui.lbErr=null;if(view==="global")render();}).catch(function(e){ui.lbRows=[];ui.lbLoading=0;ui.lbErr=e||1;if(view==="global")render();});}
     return head+'<div class="empty"><b>'+TL("A carregar o ranking…","Loading the ranking…")+"</b></div>";
   }
-  var mine=ui.lbMine, me=B.uid, st=lbStats();
-  var rows=ui.lbRows.slice().sort(function(a,b){return (b.score-a.score)||(b.readiness-a.readiness)||(b.coverage-a.coverage)||(b.answers-a.answers);});
+  var mine=ui.lbMine, me=B.uid, st=lbStats(), rows=lbSorted(), H=HELP();
   var myPos=-1; rows.forEach(function(r,i){if(r.user_id===me)myPos=i;});
   var you;
-  if(!mine||ui.lbRename){
-    you='<section class="panel lbjoin"><p class="lbl">'+(mine?TL("Mudar o nome","Change your name"):TL("Entrar no ranking","Join the ranking"))+'</p>'+
-      '<p class="small muted" style="margin:0 0 14px;max-width:62ch">'+TL("Escolhe o nome que os colegas vão ver (pode ser um apelido). O teu email nunca aparece. As tuas estatísticas atualizam-se sozinhas quando estudas e podes sair quando quiseres.","Choose the name your classmates will see (a nickname is fine). Your email never appears. Your stats update by themselves as you study, and you can leave whenever you want.")+"</p>"+
-      '<div class="row"><input id="lbName" class="lbinput" type="text" maxlength="24" autocomplete="nickname" value="'+esc(mine?mine.display_name:"")+'" placeholder="'+TL("O teu nome no ranking","Your ranking name")+'" aria-label="'+TL("Nome no ranking","Ranking name")+'">'+
-      '<button class="btn primary" data-act="lbjoin">'+(mine?TL("Guardar nome","Save name"):TL("Entrar no ranking","Join the ranking"))+"</button>"+
-      (mine?'<button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button>":"")+"</div></section>";
+  if(mine&&ui.lbRename){
+    you='<section class="panel lbjoin"><p class="lbl">'+TL("Mudar o nome","Change your name")+'</p>'+
+      '<p class="small muted" style="margin:0 0 14px;max-width:62ch">'+TL("É o nome que os colegas veem no ranking e no teu perfil (pode ser um apelido). O teu email nunca aparece.","It’s the name your classmates see in the ranking and on your profile (a nickname is fine). Your email never appears.")+"</p>"+
+      '<div class="row"><input id="lbName" class="lbinput" type="text" maxlength="24" autocomplete="nickname" value="'+esc(mine.display_name)+'" aria-label="'+TL("Nome no ranking","Ranking name")+'">'+
+      '<button class="btn primary" data-act="lbjoin">'+TL("Guardar nome","Save name")+'</button><button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button></div></section>";
+  }else if(mine&&mine.hidden){
+    you='<section class="panel lbjoin"><p class="lbl">'+TL("Estás escondido","You’re hidden")+'</p><p class="small muted" style="margin:0 0 14px;max-width:62ch">'+TL("Os colegas não te veem no ranking nem conseguem abrir o teu perfil. Podes voltar quando quiseres.","Your classmates can’t see you in the ranking or open your profile. You can come back whenever you want.")+"</p>"+
+      '<div class="row"><button class="btn primary" data-act="lbshow">'+TL("Voltar a aparecer","Show me again")+"</button></div></section>";
+  }else if(mine){
+    var hide=ui.armed==="lbleave"?'<button class="btn" data-act="lbleavego" style="border-color:var(--bad);color:var(--bad)">'+TL("Esconder mesmo","Hide me")+'</button> <button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button>"
+      :'<button class="link" data-act="lbleave">'+TL("Esconder-me do ranking","Hide me from the ranking")+"</button>";
+    you='<section class="panel lbme"><div><p class="lbl">'+TL("A tua posição","Your position")+info(H.pos)+'</p><div class="lbpos"><b>'+(myPos>=0?(myPos+1)+"º":"—")+'</b><span>'+TL("de ","of ")+rows.length+" · "+esc(mine.display_name)+"</span></div></div>"+
+      '<div class="kv" style="margin:0"><div><b>'+fmt1(st.score)+'</b><span>'+TL("índice de confiança","confidence index")+info(H.score)+'</span></div><div><b>'+st.readiness+'%</b><span>'+TL("prontidão","readiness")+info(H.readiness)+'</span></div><div><b>'+st.coverage+'%</b><span>'+TL("do banco visto","of the bank seen")+info(H.coverage)+"</span></div></div>"+
+      '<div class="row lbactions"><button class="btn" data-act="lbprof" data-v="'+esc(me)+'">'+TL("Ver o meu perfil","View my profile")+'</button><button class="link" data-act="lbrename">'+TL("Mudar o nome","Change name")+"</button>"+hide+"</div></section>";
   }else{
-    var leave=ui.armed==="lbleave"?'<button class="btn" data-act="lbleavego" style="border-color:var(--bad);color:var(--bad)">'+TL("Sair mesmo","Leave for real")+'</button> <button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button>"
-      :'<button class="link" data-act="lbleave">'+TL("Sair do ranking","Leave the ranking")+"</button>";
-    you='<section class="panel lbme"><div><p class="lbl">'+TL("A tua posição","Your position")+'</p><div class="lbpos"><b>'+(myPos>=0?(myPos+1)+"º":"—")+'</b><span>'+TL("de ","of ")+rows.length+" · "+esc(mine.display_name)+"</span></div></div>"+
-      '<div class="kv" style="margin:0"><div><b>'+fmt1(st.score)+'</b><span>'+TL("índice de confiança","confidence index")+'</span></div><div><b>'+st.readiness+'%</b><span>'+TL("prontidão","readiness")+'</span></div><div><b>'+st.coverage+'%</b><span>'+TL("do banco visto","of the bank seen")+"</span></div></div>"+
-      '<div class="row lbactions"><button class="link" data-act="lbrename">'+TL("Mudar o nome","Change name")+"</button>"+leave+"</div></section>";
+    you='<section class="panel lbjoin"><p class="lbl">'+TL("Ainda não estás no ranking","You’re not in the ranking yet")+'</p><p class="small muted" style="margin:0;max-width:62ch">'+
+      (ui.lbErr?lbErrMsg(ui.lbErr):lbAnswers()?TL("A entrar no ranking…","Joining the ranking…"):TL("Entras sozinho quando responderes à primeira questão. Depois podes mudar o nome ou esconder-te.","You join by yourself when you answer your first question. Then you can change your name or hide."))+"</p></section>";
   }
   var medal=["🥇","🥈","🥉"];
   var trs=rows.map(function(r,i){
     var isMe=r.user_id===me;
     return '<tr'+(isMe?' class="me"':"")+'><td class="pos">'+(medal[i]||(i+1))+'</td><td class="nm">'+esc(r.display_name)+(isMe?' <span class="tag">'+TL("tu","you")+"</span>":"")+'</td><td class="r"><b>'+fmt1(Number(r.score))+"</b></td>"+
       '<td class="r">'+r.readiness+'%</td><td class="r">'+r.coverage+'%</td><td class="r">'+(r.accuracy7==null?"—":r.accuracy7+"%")+'</td><td class="r">'+(r.exams_avg==null?"—":r.exams_avg+"%")+"</td>"+
-      '<td class="r">'+r.streak+'</td><td class="r small faint">'+dmy(r.updated_at)+"</td></tr>";
+      '<td class="r">'+r.streak+'</td><td class="r small faint">'+dmy(r.updated_at)+'</td><td class="r"><button class="btn lbview" data-act="lbprof" data-v="'+esc(r.user_id)+'">'+TL("Ver perfil","View profile")+"</button></td></tr>";
   }).join("");
-  var table=rows.length?'<div class="tbl"><table class="bp lbt"><thead><tr><th>#</th><th>'+TL("Nome","Name")+'</th><th class="r">'+TL("Índice","Index")+'</th><th class="r">'+TL("Prontidão","Readiness")+'</th><th class="r">'+TL("Banco visto","Bank seen")+'</th><th class="r">'+TL("Acerto 7 d","Accuracy 7 d")+'</th><th class="r">'+TL("Simulados","Exams")+'</th><th class="r">'+TL("Dias seguidos","Day streak")+'</th><th class="r">'+TL("Atualizado","Updated")+"</th></tr></thead><tbody>"+trs+"</tbody></table></div>"
-    :'<p class="small muted" style="margin:0">'+(ui.lbErr?TL("Não consegui carregar o ranking. Recarrega a página.","Couldn’t load the ranking. Reload the page."):TL("Ainda ninguém entrou no ranking. Sê o primeiro!","Nobody has joined the ranking yet. Be the first!"))+"</p>";
-  return head+'<div class="stack">'+you+'<section class="panel"><div class="phead"><p class="lbl">'+TL("Classificação","Standings")+'</p><span class="small faint">'+TL("Ordenado pelo índice de confiança","Sorted by confidence index")+"</span></div>"+table+
+  var table=rows.length?'<div class="tbl"><table class="bp lbt"><thead><tr><th>#</th><th>'+TL("Nome","Name")+'</th><th class="r">'+TL("Índice","Index")+info(H.score)+'</th><th class="r">'+TL("Prontidão","Readiness")+info(H.readiness)+'</th><th class="r">'+TL("Banco visto","Bank seen")+info(H.coverage)+'</th><th class="r">'+TL("Acerto 7 d","Accuracy 7 d")+info(H.acc7)+'</th><th class="r">'+TL("Simulados","Exams")+info(H.exams)+'</th><th class="r">'+TL("Dias seguidos","Day streak")+info(H.streak)+'</th><th class="r">'+TL("Atualizado","Updated")+info(H.updated)+'</th><th><span class="sr-only">'+TL("Perfil","Profile")+"</span></th></tr></thead><tbody>"+trs+"</tbody></table></div>"
+    :'<p class="small muted" style="margin:0">'+(ui.lbErr?TL("Não consegui carregar o ranking. ","Couldn’t load the ranking. ")+lbErrMsg(ui.lbErr).replace(/^Não consegui guardar\. Tenta outra vez\.$|^Couldn’t save\. Try again\.$/,TL("Recarrega a página.","Reload the page.")):TL("Ainda ninguém respondeu a questões.","Nobody has answered any questions yet."))+"</p>";
+  return head+'<div class="stack">'+you+'<section class="panel"><div class="phead"><p class="lbl">'+TL("Classificação","Standings")+'</p><span class="small faint">'+TL("Ordenado pelo índice de confiança","Sorted by confidence index")+info(H.order)+"</span></div>"+table+
     '<p class="small faint" style="margin:14px 0 0">'+TL("O índice de confiança (0 a 10) junta acerto, simulados, cobertura, retenção, calibração e ritmo, como em Progresso. Prontidão = % do exame que respondes certo agora, com o peso de cada domínio.","The confidence index (0 to 10) combines accuracy, practice exams, coverage, retention, calibration and pace, as in Progress. Readiness = % of the exam you answer correctly now, weighted by domain.")+"</p></section></div>";
 }
 
@@ -1416,11 +1541,13 @@ document.addEventListener("click",function(ev){
     case "exportp":exportProgress();break;
     case "impgo":applyImport();break;
     case "impno":ui.imp=null;render();break;
-    case "lbjoin":lbJoin();break;
+    case "lbjoin":lbSaveName();break;
     case "lbrename":ui.lbRename=true;render();var ln=$("lbName");if(ln)ln.focus();break;
     case "lbcancel":ui.lbRename=false;ui.armed=null;render();break;
     case "lbleave":ui.armed="lbleave";render();break;
-    case "lbleavego":lbLeave();break;
+    case "lbleavego":lbSetHidden(true);break;
+    case "lbshow":lbSetHidden(false);break;
+    case "lbprof":lbOpenProfile(v);break;
     case "rktab":(ui.rk||(ui.rk={tab:"bad",d:""})).tab=v;render();break;
     case "rktrain":var rl=Array.prototype.map.call(document.querySelectorAll("details.rk .qid"),function(x){return x.textContent;});var rids=pool(false).filter(function(q){return rl.indexOf(q.label||("Question "+q.id))>=0;}).map(function(q){return q.id;});startSession("rank",TL("Ranking: mais erradas","Ranking: most missed"),shuffle(rids));break;
     case "mkfmt":mkState().fmt=v;render();break;
@@ -1474,7 +1601,7 @@ document.addEventListener("change",function(ev){
 });
 document.addEventListener("keydown",function(e){
   if(e.key==="Escape"&&!$("pop").hidden){togglePop(false);return;}
-  if(e.key==="Enter"&&e.target.id==="lbName"){e.preventDefault();lbJoin();return;}
+  if(e.key==="Enter"&&e.target.id==="lbName"){e.preventDefault();lbSaveName();return;}
   if(/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;
   var k=e.key.toLowerCase();
   if(view==="treino"&&S.sess&&ui.peek!=null){
@@ -1542,7 +1669,7 @@ fetch("data.json").then(function(r){if(!r.ok)throw new Error(r.status);return r.
   D=d; d.questions.forEach(function(q){Q[q.id]=q;}); d.domains.forEach(function(x){W[x.id]=x.w;DN[x.id]=x.name;}); applyContent();
   if(S.sess&&S.sess.q)S.sess.q=S.sess.q.filter(function(id){return Q[id];});
   route();
-  if(window.CSA_BACKEND)window.CSA_BACKEND.lbMine().then(function(r){ui.lbMine=r;if(r)lbSchedule();if(view==="global")render();}).catch(function(){});
+  if(window.CSA_BACKEND)window.CSA_BACKEND.lbMine().then(function(r){ui.lbMine=r;ui.lbReady=1;if(r||lbAnswers())lbPush().catch(function(e){ui.lbErr=e||1;if(view==="global")render();});else if(view==="global")render();}).catch(function(e){ui.lbErr=e||1;if(view==="global")render();});
 }).catch(function(){
   $("view").innerHTML=TL('<div class="vh"><h1>Treino CSA</h1></div><div class="empty"><b>Não consegui carregar as questões</b>O ficheiro de dados não respondeu. Recarrega a página.</div>','<div class="vh"><h1>CSA Trainer</h1></div><div class="empty"><b>Couldn’t load the questions</b>The data file didn’t respond. Reload the page.</div>');
 });
