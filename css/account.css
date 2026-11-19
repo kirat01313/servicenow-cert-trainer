@@ -433,3 +433,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* preferences row: language and theme side by side */
+.side-foot .prefs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.side-foot .prefs .seg {
+  flex-wrap: nowrap;
+}
+.themeseg button {
+  display: grid;
+  place-items: center;
+  padding: 5px 10px;
+}
+.themeseg svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
