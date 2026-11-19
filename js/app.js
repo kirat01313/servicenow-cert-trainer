@@ -226,9 +226,20 @@ function fixRetries(){
 }
 
 /* ---------------- sessões de treino ---------------- */
+var DEATH_MAX=18;
+function deathTag(s){return s.mode==="death"?'<span class="tag death"'+((s.errs||0)>=DEATH_MAX-3?' style="background:color-mix(in srgb,var(--bad) 14%,var(--surface));color:var(--bad)"':"")+'>'+TL("Erros ","Mistakes ")+(s.errs||0)+"/"+DEATH_MAX+"</span>":"";}
+function deathHTML(s,n){
+  if(s.mode!=="death")return "";
+  var tot=s.total||s.q.length, errs=s.errs||0, msg;
+  if(s.dead)msg='<b>'+TL("Caíste ao ","You fell at mistake ")+DEATH_MAX+TL(".º erro","")+"</b>"+TL(", na questão ",", on question ")+s.dead+TL(" de "," of ")+tot+".";
+  else if(n>=tot)msg='<b>'+TL("Sobreviveste!","You survived!")+"</b> "+TL("Respondeste às ","You answered all ")+tot+TL(" questões com "," questions with ")+errs+(errs===1?TL(" erro."," mistake."):TL(" erros."," mistakes."));
+  else msg='<b>'+TL("Paraste na questão ","You stopped at question ")+n+TL(" de "," of ")+tot+"</b>"+TL(", com ",", with ")+errs+(errs===1?TL(" erro."," mistake."):TL(" erros."," mistakes."));
+  return '<section class="panel" style="grid-column:1/-1"><p class="lbl">'+TL("Morte súbita","Sudden death")+'</p><div class="verdict '+(s.dead?"no":n>=tot?"ok":"nt")+'" style="margin:0">'+msg+"</div></section>";
+}
 function startSession(mode,label,ids){
   if(!ids.length){toast(TL("Não há questões para esta sessão.","There are no questions for this session."));return;}
   S.sess={mode:mode,label:label,q:ids,i:0,res:{},rq:{},log:{},at:Date.now()};
+  if(mode==="death"){S.sess.errs=0;S.sess.total=ids.length;}
   ui.sel=[];ui.done=false;ui.last=null;ui.peek=null;saveLocal();
   if(location.hash!=="#treino")location.hash="#treino";else render();
   window.scrollTo(0,0);
@@ -286,6 +297,7 @@ function verify(conf){
   var r=repeat?retry(q,correct):record(q,correct,conf,ms,"t");
   if(!repeat)S.sess.res[q.id]={c:correct,f:conf};
   S.sess.log=S.sess.log||{}; S.sess.log[S.sess.i]={ch:chosen,c:correct,f:conf,ms:ms};
+  if(S.sess.mode==="death"&&!correct){S.sess.errs=(S.sess.errs||0)+1;if(S.sess.errs>=DEATH_MAX){S.sess.dead=S.sess.i+1;S.sess.q=S.sess.q.slice(0,S.sess.i+1);}}
   ui.done=true; ui.last={id:q.id,chosen:chosen,correct:correct,conf:conf,due:r.due,repeat:repeat,ms:ms};
   if(!repeat)snapDay();
   saveLocal(); render();
@@ -1038,7 +1050,7 @@ function vQuestion(){
   if(!(ui.last&&ui.last.id===q.id)&&lg0){var r0=rec(q.id);ui.last={id:q.id,chosen:lg0.ch||[],correct:lg0.c,conf:lg0.f,due:r0?r0.due:Date.now(),repeat:s.mode==="redo",ms:lg0.ms||0};ui.done=true;}
   var L=ui.last&&ui.last.id===q.id?ui.last:null;
   var done=s.i, tot=s.q.length;
-  var head='<div class="sessbar"><b>'+esc(lbl(s.label))+'</b><span class="num">'+(done+1)+"/"+tot+'</span><span class="t"><i style="width:'+pct(done,tot)+'%"></i></span>'+(s.i?TL('<button class="link" data-act="prevq">← Anterior</button>','<button class="link" data-act="prevq">← Previous</button>'):"")+TL('<button class="link" data-act="endsess">Terminar</button></div>','<button class="link" data-act="endsess">Finish</button></div>');
+  var head='<div class="sessbar"><b>'+esc(lbl(s.label))+'</b><span class="num">'+(done+1)+"/"+tot+'</span>'+deathTag(s)+'<span class="t"><i style="width:'+pct(done,tot)+'%"></i></span>'+(s.i?TL('<button class="link" data-act="prevq">← Anterior</button>','<button class="link" data-act="prevq">← Previous</button>'):"")+TL('<button class="link" data-act="endsess">Terminar</button></div>','<button class="link" data-act="endsess">Finish</button></div>');
   if(!L)qtStart(q.id);
   var meta='<div class="qmeta"><span class="qno">'+esc(q.label||("Question "+q.id))+'</span><span class="tag">D'+q.d+" · "+esc(q.sub)+"</span>"+(s.mode==="redo"?TL('<span class="tag rep">Bloco final</span>','<span class="tag rep">Final block</span>'):"")+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+(q.dep?'<span class="tag dep">Deprecated</span>':"")+(L?"":'<span class="qclock" title="'+TL("Tempo nesta questão (no exame: 1:30 por questão)","Time on this question (exam pace: 1:30 per question)")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg><span id="qClock">'+mmss(qtElapsed())+"</span></span>")+boxes(q.id)+"</div>";
   var body;
@@ -1053,6 +1065,7 @@ function vQuestion(){
     else if(L.conf==="n")vtxt=TL("<b>Resposta: ","<b>Answer: ")+q.ans.join(", ")+TL(".</b> Fica para o bloco final e nas revisões até a acertares.",".</b> It goes to the final block and stays in your reviews until you get it right.");
     else if(L.correct)vtxt=TL("<b>Certo.</b>","<b>Correct.</b>")+tm+(L.conf==="p"?TL(" Foi palpite, por isso volta "," It was a guess, so it comes back ")+when(r.due)+TL(" para confirmares."," for you to confirm."):TL(" Volta a aparecer "," It comes back ")+when(r.due)+".");
     else vtxt=TL("<b>Errado.</b>","<b>Wrong.</b>")+tm+TL(" A correta é "," The correct answer is ")+q.ans.join(", ")+TL(". Podes refazê-la no bloco final e volta mais vezes nas próximas sessões.",". You can redo it in the final block and it comes back more often in the next sessions.");
+    if(s.mode==="death"&&s.dead===s.i+1)vtxt+=" <b>"+TL("É o ","That’s mistake ")+DEATH_MAX+TL(".º erro: o desafio acabou.",": the challenge is over.")+"</b>";
     body=optsHTML(q,{chosen:L.chosen,reveal:true})+'<div class="verdict '+vcls+'" role="status">'+vtxt+"</div>"+
       (!L.correct&&L.conf==="s"&&s.mode!=="redo"?TL('<div class="hc"><b>Erro confiante.</b> Ficou na lista de erros confiantes. Lê a explicação com atenção: são os erros que mais ficam na memória depois de corrigidos.</div>','<div class="hc"><b>Confident mistake.</b> It went on the confident mistakes list. Read the explanation carefully: these are the mistakes that stick best in memory once corrected.</div>'):"")+
       '<div class="nextrow">'+(s.i?TL('<button class="btn" data-act="prevq" style="margin-right:auto">Anterior<kbd>←</kbd></button>','<button class="btn" data-act="prevq" style="margin-right:auto">Previous<kbd>←</kbd></button>'):"")+'<button class="btn primary" data-act="next" id="nextBtn">'+(s.i+1>=s.q.length?TL("Terminar sessão","Finish session"):TL("Seguinte","Next"))+'<kbd>Enter</kbd></button></div>'+
@@ -1070,7 +1083,7 @@ function vSessionEnd(){
   var ms=E.filter(function(e){return e.ms>0;}), avg=ms.length?ms.reduce(function(a,e){return a+e.ms;},0)/ms.length:null;
   var c={s:0,a:0,p:0,w:0,n:0};E.forEach(function(e){if(e.f==="n")c.n++;else if(!e.ok)c.w++;else c[e.f]=(c[e.f]||0)+1;});
   var cs=confScore();
-  var top=TL('<section class="panel g-wide"><div class="phead"><p class="lbl">Resultado</p><span class="small faint">','<section class="panel g-wide"><div class="phead"><p class="lbl">Result</p><span class="small faint">')+esc(lbl(s.label))+'</span></div><div class="score"><span class="num">'+pct(ok,n)+TL('%</span><span class="muted">certas à primeira tentativa</span></div>','%</span><span class="muted">correct on the first attempt</span></div>')+
+  var top=deathHTML(s,n)+TL('<section class="panel g-wide"><div class="phead"><p class="lbl">Resultado</p><span class="small faint">','<section class="panel g-wide"><div class="phead"><p class="lbl">Result</p><span class="small faint">')+esc(lbl(s.label))+'</span></div><div class="score"><span class="num">'+pct(ok,n)+TL('%</span><span class="muted">certas à primeira tentativa</span></div>','%</span><span class="muted">correct on the first attempt</span></div>')+
     '<div class="kv"><div><b>'+ok+"/"+n+TL('</b><span>certas</span></div><div><b>','</b><span>correct</span></div><div><b>')+(c.p)+TL('</b><span>certas por palpite</span></div><div><b>','</b><span>correct by guessing</span></div><div><b>')+hc+TL('</b><span>erros confiantes</span></div><div><b>','</b><span>confident mistakes</span></div><div><b>')+(avg?mmss(avg):"—")+TL('</b><span>por questão (exame: 1:30)</span></div><div><b>','</b><span>per question (exam: 1:30)</span></div><div><b>')+mins+TL(' min</b><span>de sessão</span></div></div>',' min</b><span>of session</span></div></div>')+
     '<div class="row" style="margin-top:22px">'+(wrongIds.length?TL('<button class="btn primary" data-act="redo">Refazer as ','<button class="btn primary" data-act="redo">Redo the ')+wrongIds.length+TL(' erradas</button>',' wrong ones</button>'):"")+'<button class="btn'+(wrongIds.length?"":" primary")+TL('" data-act="newsess">Nova sessão</button><button class="btn" data-act="peekfirst">Rever as questões</button></div>','" data-act="newsess">New session</button><button class="btn" data-act="peekfirst">Review the questions</button></div>')+
     (wrongIds.length?TL('<p class="small faint" style="margin:12px 0 0">O bloco final é opcional. As erradas também voltam mais vezes nas próximas sessões.</p>','<p class="small faint" style="margin:12px 0 0">The final block is optional. Wrong answers also come back more often in the next sessions.</p>'):"")+"</section>";
@@ -1108,7 +1121,7 @@ function vExam(){
   var grid=ui.examGrid?'<div class="grid">'+e.q.map(function(id,i){return '<button data-act="ejump" data-v="'+i+'" class="'+(e.a[id]?"a ":"")+(e.m[id]?"mk ":"")+(i===e.i?"cur":"")+TL('" aria-label="Questão ','" aria-label="Question ')+(i+1)+'">'+(i+1)+"</button>";}).join("")+'</div>':"";
   var conf=ui.examConfirm?'<div class="confirm"><p style="margin:0 0 12px">'+(e.q.length-answered?TL("Tens <b>","You have <b>")+(e.q.length-answered)+TL("</b> por responder","</b> unanswered")+(marked?TL(" e <b>"," and <b>")+marked+TL("</b> marcadas","</b> marked"):"")+TL(". O simulado fica nos interrompidos e o resultado conta só as que respondeste (no exame real, as em branco contam como erradas).",". The practice exam goes to the interrupted ones and the result counts only the ones you answered (in the real exam, blanks count as wrong)."):TL("Respondeste a todas","You answered them all")+(marked?TL(", mas tens <b>",", but you have <b>")+marked+TL("</b> marcadas para rever","</b> marked for review"):"")+".")+TL('</p><div class="row"><button class="btn primary" data-act="edone">Terminar e ver o resultado</button><button class="btn" data-act="enofin">Continuar o exame</button></div></div>','</p><div class="row"><button class="btn primary" data-act="edone">Finish and see the result</button><button class="btn" data-act="enofin">Continue the exam</button></div></div>'):"";
   return '<div class="read">'+top+conf+grid+TL('<article class="qcard" style="margin-top:12px"><div class="qmeta"><span class="qno">Questão ','<article class="qcard" style="margin-top:12px"><div class="qmeta"><span class="qno">Question ')+(e.i+1)+TL(" de "," of ")+e.q.length+'</span>'+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+'<button class="btn markbtn" style="margin-left:auto;padding:4px 10px;font-size:12.5px" data-act="emark" aria-pressed="'+(e.m[q.id]?"true":"false")+'">'+(e.m[q.id]?TL("Marcada","Marked"):TL("Marcar para rever","Mark for review"))+'</button></div>'+stemHTML(q)+optsHTML(q,{sel:sel,act:"eopt"})+
-    '<div class="nextrow" style="justify-content:space-between"><button class="btn" data-act="eprev"'+(e.i?"":" disabled")+TL('>Anterior</button><button class="btn primary" data-act="enext"','>Previous</button><button class="btn primary" data-act="enext"')+(e.i<e.q.length-1?"":" disabled")+TL('>Seguinte</button></div></article></div>','>Next</button></div></article></div>');
+    '<div class="nextrow" style="justify-content:space-between"><button class="btn" data-act="eprev"'+(e.i?"":" disabled")+TL('>Anterior</button><button class="btn primary" data-act="enext"','>Previous</button><button class="btn primary" data-act="enext"')+(e.i<e.q.length-1?TL('>Seguinte</button></div></article></div>','>Next</button></div></article></div>'):TL('>Terminar</button></div></article></div>','>Finish</button></div></article></div>'));
 }
 function paintExamTop(){
   var e=S.exam; if(!e||view!=="simulado")return;
@@ -1289,12 +1302,12 @@ function mkState(){return ui.mk||(ui.mk={d:"",s:"",m:"",st:"all",n:20,fmt:"t"});
 function mkList(){var m=mkState(),e=eod();return pool().filter(function(q){if(m.d&&String(q.d)!==m.d)return false;if(m.s&&q.sub!==m.s)return false;if(m.m&&modOf(q)!==m.m)return false;var r=rec(q.id);
   if(m.st==="new")return !r||!r.n;if(m.st==="wrong")return r&&r.n&&!r.l;if(m.st==="due")return r&&r.n&&r.due<=e;if(m.st==="guess")return r&&r.n&&r.c==="p";if(m.st==="seen")return r&&r.n;return true;});}
 function mkSummary(){
-  var m=mkState(),av=mkList().length,n=Math.min(m.n,av),ref=n*90000,am=avgMs(200);
+  var m=mkState(),av=mkList().length,n=m.fmt==="d"?av:Math.min(m.n,av),ref=n*90000,am=avgMs(200);
   return TL('<p class="lbl">Resumo</p><div><div class="big">','<p class="lbl">Summary</p><div><div class="big">')+n+TL('</div><span class="small muted">questões de ','</div><span class="small muted">questions out of ')+av+TL(" disponíveis</span></div><dl>"," available</span></div><dl>")+
     TL("<dt>Tempo de referência (1:30 por questão, como no exame)</dt><dd>","<dt>Reference time (1:30 per question, as in the exam)</dt><dd>")+mmss(ref)+"</dd>"+
     TL("<dt>Com o teu ritmo atual","<dt>At your current pace")+(am?" ("+mmss(am)+"/q)":"")+"</dt><dd>"+(am?mmss(am*n):"—")+"</dd>"+
-    TL("<dt>Formato</dt><dd>","<dt>Format</dt><dd>")+(m.fmt==="x"?TL("Cronometrado","Timed"):TL("Treino","Practice"))+"</dd></dl>"+
-    '<p class="small faint" style="margin:0">'+(m.fmt==="x"?TL("Sem respostas até ao fim e com o relógio a contar ","No answers until the end and the clock counting ")+mmss(ref)+TL(". Fica no histórico dos simulados.",". It goes into the practice exam history."):TL("Vês a resposta e a explicação a seguir a cada questão.","You see the answer and the explanation after each question."))+"</p>"+
+    TL("<dt>Formato</dt><dd>","<dt>Format</dt><dd>")+(m.fmt==="x"?TL("Cronometrado","Timed"):m.fmt==="d"?TL("Morte súbita","Sudden death"):TL("Treino","Practice"))+"</dd></dl>"+
+    '<p class="small faint" style="margin:0">'+(m.fmt==="d"?TL("Todas as questões escolhidas (o número em cima não conta), com a resposta a seguir a cada uma. Ao ","Every question you picked (the number above doesn’t apply), with the answer after each one. At mistake ")+DEATH_MAX+TL(".º erro o desafio acaba na hora.",", the challenge ends on the spot."):m.fmt==="x"?TL("Sem respostas até ao fim e com o relógio a contar ","No answers until the end and the clock counting ")+mmss(ref)+TL(". Fica no histórico dos simulados.",". It goes into the practice exam history."):TL("Vês a resposta e a explicação a seguir a cada questão.","You see the answer and the explanation after each question."))+"</p>"+
     '<button class="btn primary big" data-act="mkgo"'+(n?"":" disabled")+TL(">Começar</button>",">Start</button>");
 }
 function vMontar(){
@@ -1309,14 +1322,16 @@ function vMontar(){
     TL('<label class="field" for="mkM"><span>Módulo do curso SNAF</span><select id="mkM" data-act="mk" data-k="m">','<label class="field" for="mkM"><span>SNAF course module</span><select id="mkM" data-act="mk" data-k="m">')+mopts+TL("</select><small>Aproximação: cada questão vai para o módulo do guia que melhor lhe corresponde.</small></label>","</select><small>Approximation: each question goes to the guide module that best matches it.</small></label>")+
     TL('<label class="field" for="mkSt"><span>Que questões</span><select id="mkSt" data-act="mk" data-k="st">','<label class="field" for="mkSt"><span>Which questions</span><select id="mkSt" data-act="mk" data-k="st">')+st+"</select></label>"+
     TL('<div class="field"><span>Número de questões</span><div class="range"><input type="range" id="mkN" min="5" max="60" step="5" value="','<div class="field"><span>Number of questions</span><div class="range"><input type="range" id="mkN" min="5" max="60" step="5" value="')+m.n+TL('" data-act="mkn" aria-label="Número de questões"><output id="mkNo" for="mkN">','" data-act="mkn" aria-label="Number of questions"><output id="mkNo" for="mkN">')+m.n+"</output></div></div>"+
-    TL('<div class="field"><span>Formato</span><div class="seg" role="group" aria-label="Formato"><button data-act="mkfmt" data-v="t" aria-pressed="','<div class="field"><span>Format</span><div class="seg" role="group" aria-label="Format"><button data-act="mkfmt" data-v="t" aria-pressed="')+(m.fmt==="t")+TL('">Treino com respostas</button><button data-act="mkfmt" data-v="x" aria-pressed="','">Practice with answers</button><button data-act="mkfmt" data-v="x" aria-pressed="')+(m.fmt==="x")+TL('">Cronometrado, tipo exame</button></div></div></section>','">Timed, exam-style</button></div></div></section>')+
+    TL('<div class="field"><span>Formato</span><div class="seg" role="group" aria-label="Formato"><button data-act="mkfmt" data-v="t" aria-pressed="','<div class="field"><span>Format</span><div class="seg" role="group" aria-label="Format"><button data-act="mkfmt" data-v="t" aria-pressed="')+(m.fmt==="t")+TL('">Treino com respostas</button><button data-act="mkfmt" data-v="x" aria-pressed="','">Practice with answers</button><button data-act="mkfmt" data-v="x" aria-pressed="')+(m.fmt==="x")+TL('">Cronometrado, tipo exame</button>','">Timed, exam-style</button>')+'<button data-act="mkfmt" data-v="d" aria-pressed="'+(m.fmt==="d")+'">'+TL("Morte súbita","Sudden death")+"</button></div></div></section>"+
     '<section class="panel sum" id="mkSum">'+mkSummary()+"</section></div>";
 }
 function mkGo(){
   var m=mkState(),L=mkList();if(!L.length)return;
   var lab=m.s?m.s:m.d?"D"+m.d+" · "+DN[m.d]:m.m?modName(m.m):TL("Sessão à medida","Custom session");
-  var ids=interleave(shuffle(L.map(function(q){return q.id;})).slice(0,m.n));
-  if(m.fmt==="x")startExam({ids:ids,min:ids.length*1.5,label:lab});else startSession("custom",lab,ids);
+  var ids=interleave(shuffle(L.map(function(q){return q.id;})).slice(0,m.fmt==="d"?L.length:m.n));
+  if(m.fmt==="x")startExam({ids:ids,min:ids.length*1.5,label:lab});
+  else if(m.fmt==="d")startSession("death",lab+" · "+TL("Morte súbita","Sudden death"),ids);
+  else startSession("custom",lab,ids);
 }
 
 /* ---------------- plano ---------------- */
@@ -1428,7 +1443,7 @@ document.addEventListener("click",function(ev){
     case "exam":startExam();break;
     case "eopt":examToggle(+v);break;
     case "eprev":examGo(-1);break;
-    case "enext":examGo(1);break;
+    case "enext":if(S.exam&&S.exam.i>=S.exam.q.length-1){examTick();ui.examConfirm=true;saveLocal();render();window.scrollTo({top:0});}else examGo(1);break;
     case "emark":examMark();break;
     case "egrid":ui.examGrid=!ui.examGrid;render();break;
     case "htab":ui.histTab=v;render();break;
