@@ -636,7 +636,7 @@
   flex: none;
 }
 
-/* ---------- side menu: fits the screen without a scrollbar ---------- */
+/* ---------- side menu: sizes follow the window height, so it fills the screen without a scrollbar ---------- */
 @media (min-width: 1000px) {
   .top {
     scrollbar-width: none;
@@ -645,56 +645,41 @@
     display: none;
   }
   .top-in {
-    padding-top: 16px;
+    padding-top: clamp(10px, calc(3.2vh - 10px), 24px) !important;
     padding-bottom: 12px;
-    gap: 14px;
+    gap: clamp(8px, calc(3.6vh - 14px), 22px) !important;
   }
   .tabs {
     gap: 1px;
   }
   .tabs a {
-    padding: 7px 12px;
-    font-size: 13.5px;
+    padding: clamp(4px, calc(2.4vh - 11.5px), 12px) 12px !important;
+    font-size: clamp(13px, calc(0.6vh + 9.5px), 15px);
+  }
+  .tabs a svg {
+    width: clamp(16px, calc(0.4vh + 13px), 18px);
+    height: clamp(16px, calc(0.4vh + 13px), 18px);
   }
   .tabs .grp {
-    padding: 10px 12px 3px;
+    padding: clamp(5px, calc(3vh - 13px), 16px) 12px 4px !important;
   }
   .side-foot {
-    gap: 8px;
-  }
-  .side-foot .pomo {
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
-  .acct-btn {
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
-  .acct-btn i {
-    width: 26px;
-    height: 26px;
-  }
-}
-
-@media (min-width: 1000px) and (max-height: 760px) {
-  .top-in {
-    gap: 10px !important;
-    padding-top: 12px !important;
-  }
-  .tabs a {
-    padding: 5px 12px !important;
-    font-size: 13px;
-  }
-  .tabs .grp {
-    padding: 6px 12px 2px !important;
-  }
-  .brand small {
-    display: none;
+    gap: clamp(6px, calc(1.2vh - 2px), 10px);
   }
 }
 
 @media (min-width: 1000px) and (max-height: 640px) {
+  .brand small {
+    display: none;
+  }
   .tabs .grp {
+    padding-top: 2px !important;
+  }
+}
+
+@media (min-width: 1000px) and (max-height: 600px) {
+  .tabs .grp,
+  .brand small {
     display: none;
   }
 }
