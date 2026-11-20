@@ -39,8 +39,10 @@ The site is bilingual (European Portuguese and English) and works on phones and 
 - **Explanations** – each question has a short note with a link to the official ServiceNow
   documentation, the related lab and the matching pages of the course guide.
 - **Accounts** – sign up with a class access code (with password confirmation and a show/hide
-  button), sign in and reset the password. The account menu in the sidebar has *Change password*,
-  *Privacy and about the app* (what is stored, who sees it, delete my account) and *Sign out*.
+  button), sign in and reset the password. The account menu in the sidebar opens three pages:
+  *Account and profile* (ranking name and visibility, language, theme, password, export/import
+  progress, delete the account), *Privacy and about the app* and *Release notes* (with a dot in the
+  menu when there is something new).
 - **Bring your progress** – export from the old offline file and import it on the Today page or in
   *Progress › Data*; the progress moves to your account.
 - **Certification picker** – under the logo: CSA today, CAD marked *coming soon*.
@@ -74,10 +76,10 @@ admin.html            admin page: upload content and manage access codes
 css/
   app.css             design of the study app
   gate.css            sign-in and unlock screens
-  account.css         certification picker, account menu, dialogs and global ranking
+  account.css         certification picker, account menu, account pages, release notes and global ranking
   admin.css           admin page
 js/
-  gate.js             sign-in, sign-up with a code, unlock, account menu and dialogs,
+  gate.js             sign-in, sign-up with a code, unlock, account menu and password forms,
                       loads the content and the app
   app.js              the study app (sessions, spaced reviews, exams, progress, labs)
   admin.js            content upload and access codes
