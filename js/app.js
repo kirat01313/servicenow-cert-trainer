@@ -1027,7 +1027,7 @@ function reportHTML(E,isExam){
 function render(){
   if(!D)return;
   document.querySelectorAll(".tabs a").forEach(function(a){if(a.dataset.tab===view)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
-  var V={treino:vTreino,simulado:vSimulado,progresso:vProgresso,labs:vLabs,montar:vMontar,ranking:vRanking,global:vGlobal,plano:vPlano,exame:vExame};
+  var V={treino:vTreino,simulado:vSimulado,progresso:vProgresso,labs:vLabs,montar:vMontar,ranking:vRanking,global:vGlobal,plano:vPlano,exame:vExame,conta:vConta,sobre:vSobre,novidades:vNovidades};
   var h=(V[view]||vHoje)();
   $("view").innerHTML=h; fillCachedAI(); paintSync(); paintExamTop();
 }
@@ -1450,6 +1450,61 @@ function vGlobal(){
     '<p class="small faint" style="margin:14px 0 0">'+TL("O índice de confiança (0 a 10) junta acerto, simulados, cobertura, retenção, calibração e ritmo, como em Progresso. Prontidão = % do exame que respondes certo agora, com o peso de cada domínio.","The confidence index (0 to 10) combines accuracy, practice exams, coverage, retention, calibration and pace, as in Progress. Readiness = % of the exam you answer correctly now, weighted by domain.")+"</p></section></div>";
 }
 
+/* ---------------- conta, privacidade e notas de atualização (versão online) ---------------- */
+var NEWS=[
+  {d:"2026-11-20",pt:["Conta e perfil numa página própria: nome no ranking, visibilidade, idioma, tema, palavra-passe, exportar e importar o progresso e apagar a conta.","Privacidade e sobre a app numa página própria.","Esta página de notas de atualização, para veres o que muda na app.","O menu lateral cabe no ecrã, sem barra de rolagem."],
+    en:["Account and profile on its own page: ranking name, visibility, language, theme, password, export and import your progress, and delete your account.","Privacy and about the app on its own page.","This release notes page, so you can see what changes in the app.","The side menu fits the screen, with no scrollbar."]},
+  {d:"2026-11-19",t:["Atualização da tarde","Afternoon update"],pt:["As opções de resposta aparecem por ordem diferente sempre que a questão surge, para não se decorar a posição da resposta.","Morte súbita: entram sempre todas as questões do banco, sem filtros. O formato passou a ser a primeira escolha em Montar sessão.","Ranking global automático: entra toda a gente que já respondeu a questões. Podes mudar o nome ou esconder-te.","Ver perfil: as estatísticas de cada colega, com o acerto por domínio ao lado do teu.","Botões «i» que explicam cada índice e cada KPI.","Novo seletor de tema ☀ ☾ ao lado do idioma."],
+    en:["The answer options show in a different order every time a question comes up, so nobody memorises the position of the answer.","Sudden death: it always uses every question in the bank, with no filters. The format is now the first choice in Build a session.","Automatic global ranking: everyone who has answered questions joins. You can change your name or hide.","View profile: each classmate’s stats, with accuracy per domain next to yours.","«i» buttons that explain every index and KPI.","New ☀ ☾ theme switch next to the language."]},
+  {d:"2026-11-19",t:["Lançamento da versão online","Online version launch"],pt:["Contas com o código da turma. O progresso fica guardado na conta e funciona em qualquer computador ou telemóvel.","Importar o progresso do ficheiro HTML antigo.","Ranking global da turma.","Modo morte súbita em Montar sessão: acaba ao 18.º erro.","No simulado, o botão da última questão passa a «Terminar».","Menu da conta e seletor de certificação (CAD em breve)."],
+    en:["Accounts with the class code. Your progress is saved to your account and works on any computer or phone.","Import your progress from the old HTML file.","Class global ranking.","Sudden death mode in Build a session: it ends at the 18th mistake.","In a practice exam, the last question’s button becomes «Finish».","Account menu and certification picker (CAD coming soon)."]},
+  {d:"",t:["Antes da versão online (ficheiro HTML)","Before the online version (HTML file)"],pt:["Versão em inglês (PT | EN), com os termos do livro em inglês.","Relógio por questão em tempo real, que não para ao mudar de separador.","Treino do dia limitado a 60 questões.","Plano com as horas por dia corrigidas.","Exportar e importar o progresso.","Questão 435 corrigida (opções G e H separadas)."],
+    en:["English version (PT | EN), with the book’s English terms.","Real-time clock per question that doesn’t stop when you switch tabs.","Today’s practice capped at 60 questions.","Plan with corrected hours per day.","Export and import your progress.","Question 435 fixed (options G and H split)."]}
+];
+window.CSA_NEWS_LATEST=NEWS[0].d;
+function longDate(d){return d?new Date(d+"T12:00:00").toLocaleDateString(LOC(),{day:"numeric",month:"long",year:"numeric"}):"";}
+function pageHead(h,p){return '<div class="vh"><div><h1>'+h+"</h1>"+(p?"<p>"+p+"</p>":"")+"</div></div>";}
+function onlineOnly(head){return head+'<div class="empty"><b>'+TL("Disponível só na versão online.","Only available in the online version.")+"</b></div>";}
+function newsHTML(n){return '<p class="lbl">'+esc(n.d?longDate(n.d):"")+(n.d&&n.t?" · ":"")+esc(n.t?TL(n.t[0],n.t[1]):"")+(n.d===NEWS[0].d&&n===NEWS[0]?' <span class="tag multi">'+TL("Novo","New")+"</span>":"")+'</p><ul class="news-l">'+(LANG==="en"?n.en:n.pt).map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+"</ul>";}
+function segLang(){return '<div class="seg langseg" role="group" aria-label="'+TL("Idioma","Language")+'"><button data-act="lang" data-v="pt" aria-pressed="'+(LANG!=="en")+'" lang="pt-PT">PT</button><button data-act="lang" data-v="en" aria-pressed="'+(LANG==="en")+'" lang="en">EN</button></div>';}
+function segTheme(){var th=document.documentElement.dataset.theme==="dark"?"dark":"light";
+  return '<div class="seg themeseg" role="group" aria-label="'+TL("Tema","Theme")+'"><button data-act="themeset" data-v="light" aria-pressed="'+(th==="light")+'" aria-label="'+TL("Tema claro","Light theme")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg></button><button data-act="themeset" data-v="dark" aria-pressed="'+(th==="dark")+'" aria-label="'+TL("Tema escuro","Dark theme")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button></div>';}
+function vConta(){
+  var B=window.CSA_BACKEND, head=pageHead(TL("Conta e perfil","Account and profile"),B?esc(B.email):"");
+  if(!B)return onlineOnly(head);
+  var mine=ui.lbMine, prof;
+  if(!mine){
+    prof='<p class="small muted" style="margin:0">'+(lbAnswers()?TL("A entrar no ranking…","Joining the ranking…"):TL("Entras no ranking global sozinho quando responderes à primeira questão. Depois podes mudar aqui o nome e esconder-te.","You join the global ranking by yourself when you answer your first question. Then you can change your name and hide here."))+"</p>";
+  }else{
+    var vis=mine.hidden?'<button class="btn primary" data-act="lbshow">'+TL("Voltar a aparecer","Show me again")+"</button>"
+      :ui.armed==="lbleave"?'<button class="btn danger" data-act="lbleavego">'+TL("Esconder mesmo","Hide me")+'</button><button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button>"
+      :'<button class="btn" data-act="lbleave">'+TL("Esconder-me do ranking","Hide me from the ranking")+"</button>";
+    prof='<p class="acct-k">'+TL("Nome mostrado aos colegas","Name shown to classmates")+'</p><div class="row"><input id="lbName" class="lbinput" type="text" maxlength="24" autocomplete="nickname" value="'+esc(mine.display_name)+'" aria-label="'+TL("Nome no ranking","Ranking name")+'"><button class="btn primary" data-act="lbjoin">'+TL("Guardar nome","Save name")+"</button></div>"+
+      '<p class="small faint" style="margin:8px 0 0">'+TL("Entre 2 e 24 caracteres. O teu email nunca aparece.","2 to 24 characters. Your email never appears.")+"</p>"+
+      '<div class="acct-row"><div><b>'+(mine.hidden?TL("Escondido do ranking","Hidden from the ranking"):TL("Visível no ranking","Visible in the ranking"))+'</b><span class="small muted">'+(mine.hidden?TL("Os colegas não te veem nem abrem o teu perfil.","Classmates can’t see you or open your profile."):TL("Os colegas veem as tuas estatísticas e podem abrir o teu perfil.","Classmates see your stats and can open your profile."))+'</span></div><div class="row">'+vis+"</div></div>"+
+      (mine.hidden?"":'<div class="acct-row"><div><b>'+TL("O teu perfil","Your profile")+'</b><span class="small muted">'+TL("Vê o que os colegas veem quando abrem o teu perfil.","See what classmates see when they open your profile.")+'</span></div><button class="btn" data-act="lbprof" data-v="'+esc(B.uid)+'">'+TL("Ver o meu perfil","View my profile")+"</button></div>");
+  }
+  return head+'<div class="stack acct-page">'+
+    '<section class="panel"><p class="lbl">'+TL("Perfil no ranking","Ranking profile")+"</p>"+prof+"</section>"+
+    '<section class="panel"><p class="lbl">'+TL("Preferências","Preferences")+'</p><div class="acct-row first"><div><b>'+TL("Idioma","Language")+'</b><span class="small muted">'+TL("Os nomes técnicos da plataforma ficam em inglês, como no exame.","The platform’s technical names stay in English, as in the exam.")+"</span></div>"+segLang()+'</div><div class="acct-row"><div><b>'+TL("Tema","Theme")+'</b><span class="small muted">'+TL("Claro ou escuro. Fica guardado neste browser.","Light or dark. Saved in this browser.")+"</span></div>"+segTheme()+"</div></section>"+
+    '<section class="panel" data-msgbox><p class="lbl">'+TL("Palavra-passe","Password")+"</p>"+B.pwFormHTML()+"</section>"+
+    '<section class="panel"><p class="lbl">'+TL("Os teus dados","Your data")+'</p><p class="small muted" style="margin:0 0 12px" data-sync></p>'+dataPanelHTML()+"</section>"+
+    (B.isAdmin()?'<section class="panel"><p class="lbl">'+TL("Administração","Admin")+'</p><div class="acct-row first"><div><b>'+TL("Conteúdo e códigos de acesso","Content and access codes")+'</b><span class="small muted">'+TL("Carregar questões e criar códigos para as turmas.","Upload questions and create codes for classes.")+'</span></div><a class="btn" href="admin.html">'+TL("Abrir a administração","Open admin")+"</a></div></section>":"")+
+    '<section class="panel acct-danger" data-msgbox><p class="lbl">'+TL("Apagar a conta","Delete account")+'</p><p class="small muted" style="margin:0 0 12px">'+TL("Apaga o progresso, o acesso e o lugar no ranking. Não dá para desfazer. Exporta o progresso antes, se o quiseres guardar.","Deletes your progress, access and ranking place. It can’t be undone. Export your progress first if you want to keep it.")+"</p>"+B.deleteHTML()+"</section>"+
+    "</div>";
+}
+function vSobre(){
+  var B=window.CSA_BACKEND, head=pageHead(TL("Privacidade e sobre a app","Privacy and about the app"),TL("O que a app guarda, quem vê o quê e de onde vem o conteúdo.","What the app stores, who sees what and where the content comes from."));
+  if(!B)return onlineOnly(head);
+  return head+'<div class="stack acct-page"><section class="panel privacy">'+B.privacyHTML()+"</section>"+
+    '<section class="panel"><div class="phead"><p class="lbl">'+TL("Notas de atualização","Release notes")+'</p><a class="link" href="#novidades">'+TL("Ver todas","See all")+"</a></div>"+newsHTML(NEWS[0])+"</section></div>";
+}
+function vNovidades(){
+  try{localStorage.setItem("csa2-news-seen",NEWS[0].d);}catch(e){}
+  return pageHead(TL("Notas de atualização","Release notes"),TL("O que mudou na app, das novidades mais recentes para as mais antigas.","What changed in the app, from the newest to the oldest."))+
+    '<div class="stack acct-page">'+NEWS.map(function(n){return '<section class="panel">'+newsHTML(n)+"</section>";}).join("")+"</div>";
+}
+
 /* ---------------- montar sessão ---------------- */
 function mkState(){return ui.mk||(ui.mk={d:"",s:"",m:"",st:"all",n:20,fmt:"t"});}
 function mkList(){var m=mkState(),e=eod();if(m.fmt==="d")return pool();return pool().filter(function(q){if(m.d&&String(q.d)!==m.d)return false;if(m.s&&q.sub!==m.s)return false;if(m.m&&modOf(q)!==m.m)return false;var r=rec(q.id);
@@ -1650,7 +1705,7 @@ document.addEventListener("keydown",function(e){
     if(/^[1-9]$/.test(k))examToggle(optAt(exQ(),+k-1)); else if(k==="arrowright")examGo(1); else if(k==="arrowleft")examGo(-1); else if(k==="m")examMark();
   }
 });
-function route(){var t=(location.hash||"#hoje").slice(1);view=["hoje","treino","montar","simulado","progresso","ranking","global","plano","exame","labs"].indexOf(t)>=0?t:"hoje";if(view==="global")ui.lbRows=null;render();}
+function route(){var t=(location.hash||"#hoje").slice(1);view=["hoje","treino","montar","simulado","progresso","ranking","global","plano","exame","labs","conta","sobre","novidades"].indexOf(t)>=0?t:"hoje";if(view==="global")ui.lbRows=null;render();}
 document.addEventListener("input",function(ev){var el=ev.target;if(el.dataset.act==="mkn"){mkState().n=+el.value;var o=$("mkNo");if(o)o.textContent=el.value;var sm=$("mkSum");if(sm)sm.innerHTML=mkSummary();}});
 document.addEventListener("toggle",function(ev){var t=ev.target;if(t.classList&&t.classList.contains("topic")){try{localStorage.setItem("csa2-topic",t.open?"1":"0");}catch(e){}}},true);
 function donutTip(ev){

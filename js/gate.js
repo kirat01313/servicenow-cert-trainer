@@ -72,6 +72,8 @@
       admin: "Administração",
       changePassword: "Mudar a palavra-passe",
       privacy: "Privacidade e sobre a app",
+      accountPage: "Conta e perfil",
+      news: "Notas de atualização",
       passwordChanged: "Palavra-passe mudada.",
       close: "Fechar",
       cancel: "Cancelar",
@@ -80,9 +82,9 @@
       soon: "Em breve",
       moreCerts: "Mais certificações ServiceNow a caminho.",
       privacyHtml:
-        "<h3>O que guardamos</h3><ul><li>O teu <b>email</b>, para entrares.</li><li>O teu <b>progresso de estudo</b>: respostas, sessões, simulados, datas e definições.</li><li>Só se entrares no <b>ranking global</b>: o nome que escolheres e as tuas estatísticas (índice, prontidão, cobertura, acerto, simulados, dias seguidos).</li></ul>" +
-        "<h3>Quem vê</h3><ul><li>O teu progresso: só tu.</li><li>O ranking global: os colegas com acesso à mesma certificação. O teu email nunca aparece.</li><li>O administrador vê quantas contas usaram cada código, não o teu progresso.</li></ul>" +
-        "<h3>Os teus direitos</h3><ul><li>Podes exportar o progresso em <b>Progresso › Dados</b>.</li><li>Podes sair do ranking quando quiseres.</li><li>Podes apagar a conta aqui em baixo: apaga o progresso, o acesso e o lugar no ranking. Não dá para desfazer.</li></ul>" +
+        "<h3>O que guardamos</h3><ul><li>O teu <b>email</b>, para entrares.</li><li>O teu <b>progresso de estudo</b>: respostas, sessões, simulados, datas e definições.</li><li>Para o <b>ranking global</b> (entras sozinho quando respondes à primeira questão): o nome que aparece aos colegas e as tuas estatísticas (índice, prontidão, cobertura, acerto por domínio, simulados, dias seguidos e atividade dos últimos 14 dias).</li></ul>" +
+        "<h3>Quem vê</h3><ul><li>O teu progresso: só tu.</li><li>O ranking global e o teu perfil: os colegas com acesso à mesma certificação. O teu email nunca aparece.</li><li>Se te esconderes do ranking, só os administradores continuam a ver a tua linha.</li><li>O administrador vê quantas contas usaram cada código, não o teu progresso.</li></ul>" +
+        "<h3>Os teus direitos</h3><ul><li>Na página <b>Conta e perfil</b> podes mudar o nome do ranking, esconder-te, exportar o progresso e apagar a conta.</li><li>Apagar a conta apaga o progresso, o acesso e o lugar no ranking. Não dá para desfazer.</li></ul>" +
         "<h3>Sobre a app</h3><p>Projeto de estudo feito por um aluno do UpSkill (IPCA) para preparar o exame ServiceNow CSA. Não é afiliado à ServiceNow. As questões vêm do banco partilhado na formação; as notas baseiam-se na documentação oficial da ServiceNow; os excertos do guia do curso só aparecem a quem tem acesso.</p>",
       deleteAccount: "Apagar a minha conta",
       deleteConfirm: "Tens a certeza? O progresso, o acesso e o lugar no ranking são apagados e não dá para desfazer. Exporta o progresso antes, se o quiseres guardar.",
@@ -147,6 +149,8 @@
       admin: "Admin",
       changePassword: "Change password",
       privacy: "Privacy and about the app",
+      accountPage: "Account and profile",
+      news: "Release notes",
       passwordChanged: "Password changed.",
       close: "Close",
       cancel: "Cancel",
@@ -155,10 +159,10 @@
       soon: "Coming soon",
       moreCerts: "More ServiceNow certifications on the way.",
       privacyHtml:
-        "<h3>What we store</h3><ul><li>Your <b>email</b>, so you can sign in.</li><li>Your <b>study progress</b>: answers, sessions, practice exams, dates and settings.</li><li>Only if you join the <b>global ranking</b>: the name you choose and your stats (index, readiness, coverage, accuracy, exams, day streak).</li></ul>" +
-        "<h3>Who sees it</h3><ul><li>Your progress: only you.</li><li>The global ranking: classmates with access to the same certification. Your email never appears.</li><li>The admin sees how many accounts used each code, not your progress.</li></ul>" +
-        "<h3>Your rights</h3><ul><li>You can export your progress in <b>Progress › Data</b>.</li><li>You can leave the ranking whenever you want.</li><li>You can delete your account below: it deletes your progress, access and ranking place. It can’t be undone.</li></ul>" +
-        "<h3>About the app</h3><p>A study project made by an UpSkill (IPCA) student to prepare for the ServiceNow CSA exam. Not affiliated with ServiceNow. The questions come from the bank shared during the course; the notes are based on the official ServiceNow documentation; the course guide excerpts are shown only to people with access.</p>",
+        "<h3>What we store</h3><ul><li>Your <b>email</b>, so you can sign in.</li><li>Your <b>study progress</b>: answers, sessions, practice exams, dates and settings.</li><li>For the <b>global ranking</b> (you join by yourself when you answer your first question): the name your classmates see and your stats (index, readiness, coverage, accuracy per domain, practice exams, day streak and the last 14 days of activity).</li></ul>" +
+        "<h3>Who sees it</h3><ul><li>Your progress: only you.</li><li>The global ranking and your profile: classmates with access to the same certification. Your email never appears.</li><li>If you hide from the ranking, only the admins still see your row.</li><li>The admin sees how many accounts used each code, not your progress.</li></ul>" +
+        "<h3>Your rights</h3><ul><li>On the <b>Account and profile</b> page you can change your ranking name, hide, export your progress and delete your account.</li><li>Deleting your account deletes your progress, access and ranking place. It can’t be undone.</li></ul>" +
+        "<h3>About the app</h3><p>A study project made by an UpSkill (IPCA) student to prepare for the ServiceNow CSA exam. Not affiliated with ServiceNow. The questions come from the bank shared during the course; the notes are based on the official ServiceNow documentation; the course guide excerpts only show to people with access.</p>",
       deleteAccount: "Delete my account",
       deleteConfirm: "Are you sure? Your progress, access and ranking place are deleted and it can’t be undone. Export your progress first if you want to keep it.",
       deleteGo: "Delete for real",
@@ -376,8 +380,9 @@
       (isAdmin
         ? '<a role="menuitem" class="mp-link" href="admin.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>' + esc(t("admin")) + "</a>"
         : "") +
-      '<button role="menuitem" data-g="pw"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>' + esc(t("changePassword")) + "</button>" +
-      '<button role="menuitem" data-g="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.5v5c0 4.2 3 7.6 7 9 4-1.4 7-4.8 7-9v-5z"/><path d="M12 10.5v5M12 7.8v.4"/></svg>' + esc(t("privacy")) + "</button>" +
+      '<a role="menuitem" class="mp-link" href="#conta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg>' + esc(t("accountPage")) + "</a>" +
+      '<a role="menuitem" class="mp-link" href="#sobre"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6.5v5c0 4.2 3 7.6 7 9 4-1.4 7-4.8 7-9v-5z"/><path d="M12 10.5v5M12 7.8v.4"/></svg>' + esc(t("privacy")) + "</a>" +
+      '<a role="menuitem" class="mp-link" href="#novidades"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h14v15H5z"/><path d="M8.5 9h7M8.5 12.5h7M8.5 16h4"/></svg>' + esc(t("news")) + (newsUnseen() ? '<i class="mp-dot" aria-label="' + esc(lang === "en" ? "New" : "Novo") + '"></i>' : "") + "</a>" +
       '<hr><button role="menuitem" data-g="signout" class="mp-out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h9"/></svg>' + esc(t("signout")) + "</button>";
     placePop(pop, btn);
   }
@@ -408,39 +413,29 @@
     placePop(pop, btn);
   }
 
-  function dialog(title, body) {
-    var d = document.getElementById("dlg");
-    d.classList.remove("dlg-wide");
-    d.innerHTML =
-      '<div class="dlg-head"><h2>' + esc(title) + '</h2><button class="dlg-x" data-g="dlgclose" aria-label="' + esc(t("close")) + '">×</button></div>' +
-      '<div class="dlg-body">' + body + "</div>";
-    if (!d.open) d.showModal();
-    var first = d.querySelector("input");
-    if (first) first.focus();
+  function newsUnseen() {
+    var latest = window.CSA_NEWS_LATEST || "";
+    return !!latest && (safeGet("csa2-news-seen") || "") < latest;
   }
 
-  function openPassword() {
-    dialog(
-      t("changePassword"),
+  function pwFormHTML() {
+    return (
       '<p class="gate-msg" role="status" hidden></p>' +
-        '<form data-g="pwchange" novalidate>' +
-        passField("gPass", t("newPassword"), 'autocomplete="new-password" minlength="8"') +
-        passField("gPass2", t("confirmPassword"), 'autocomplete="new-password" minlength="8"') +
-        '<div class="dlg-actions"><button class="btn" type="button" data-g="dlgclose">' + esc(t("cancel")) + '</button><button class="btn primary" type="submit">' + esc(t("savePassword")) + "</button></div></form>"
+      '<form data-g="pwchange" class="acct-form" novalidate>' +
+      passField("gPass", t("newPassword"), 'autocomplete="new-password" minlength="8"') +
+      passField("gPass2", t("confirmPassword"), 'autocomplete="new-password" minlength="8"') +
+      '<div class="dlg-actions acct-actions"><button class="btn primary" type="submit">' + esc(t("savePassword")) + "</button></div></form>"
     );
   }
 
-  function openPrivacy() {
+  function deleteHTML() {
     armedDelete = false;
-    dialog(
-      t("privacy"),
-      '<div class="privacy">' + t("privacyHtml") + "</div>" +
-        '<div class="dlg-danger"><p class="gate-msg" role="status" hidden></p><div class="dlg-actions"><button class="btn danger" type="button" data-g="delacct">' + esc(t("deleteAccount")) + "</button></div></div>"
-    );
+    return '<p class="gate-msg" role="status" hidden></p><div class="acct-actions"><button class="btn danger" type="button" data-g="delacct">' + esc(t("deleteAccount")) + "</button></div>";
   }
 
-  function dlgMsg(msg, ok) {
-    var m = document.querySelector("#dlg .gate-msg");
+  function dlgMsg(msg, ok, from) {
+    var box = from && from.closest ? from.closest("[data-msgbox]") : null;
+    var m = box ? box.querySelector(".gate-msg") : document.querySelector("#dlg .gate-msg");
     if (!m) return;
     m.textContent = msg;
     m.hidden = false;
@@ -452,7 +447,7 @@
     if (e.key === "Escape") closePops();
   });
   document.addEventListener("click", function (ev) {
-    if (!ev.target.closest(".menu-pop") && !ev.target.closest('[data-g="usermenu"],[data-g="certs"]')) closePops();
+    if (ev.target.closest(".menu-pop a") || (!ev.target.closest(".menu-pop") && !ev.target.closest('[data-g="usermenu"],[data-g="certs"]'))) closePops();
   }, true);
 
   function busy(form, on) {
@@ -638,6 +633,14 @@
       cert: CERT,
       uid: uid,
       email: session.user.email || "",
+      isAdmin: function () {
+        return isAdmin;
+      },
+      pwFormHTML: pwFormHTML,
+      deleteHTML: deleteHTML,
+      privacyHTML: function () {
+        return t("privacyHtml");
+      },
       lbList: function () {
         return sb
           .from("leaderboard")
@@ -747,18 +750,12 @@
       openCerts(el);
     } else if (a === "certpick") {
       closePops();
-    } else if (a === "pw") {
-      closePops();
-      openPassword();
-    } else if (a === "privacy") {
-      closePops();
-      openPrivacy();
     } else if (a === "dlgclose") {
       document.getElementById("dlg").close();
     } else if (a === "delacct") {
       if (!armedDelete) {
         armedDelete = true;
-        dlgMsg(t("deleteConfirm"), false);
+        dlgMsg(t("deleteConfirm"), false, el);
         el.textContent = t("deleteGo");
         return;
       }
@@ -773,7 +770,7 @@
         location.reload();
       }).catch(function () {
         el.disabled = false;
-        dlgMsg(t("deleteError"), false);
+        dlgMsg(t("deleteError"), false, el);
       });
     } else if (a === "eye") {
       var inp = el.parentNode.querySelector("input");
@@ -879,7 +876,7 @@
         .then(done);
     } else if (a === "pwchange") {
       var showErr = function (msg) {
-        dlgMsg(msg, false);
+        dlgMsg(msg, false, f);
         done();
       };
       if ((pass || "").length < 8) return showErr(t("shortPassword"));
@@ -889,10 +886,10 @@
         .then(function (r) {
           if (r.error) throw r.error;
           f.reset();
-          dlgMsg(t("passwordChanged"), true);
+          dlgMsg(t("passwordChanged"), true, f);
         })
         .catch(function (e) {
-          dlgMsg(authError(e), false);
+          dlgMsg(authError(e), false, f);
         })
         .then(done);
     } else if (a === "unlock") {
