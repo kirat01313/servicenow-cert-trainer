@@ -865,8 +865,9 @@ function HELP(){var w=function(k){return Math.round(SCORE_W[k]*100);};return {
   studied:TL("Número de dias diferentes com pelo menos uma resposta.","Number of different days with at least one answer."),
   avgms:TL("Média do tempo gasto nas últimas 200 respostas (cada uma limitada a 5 minutos). No exame tens 1:30 por questão.","Average time spent on the last 200 answers (each capped at 5 minutes). In the exam you have 1:30 per question."),
   sure:TL("Das respostas marcadas «tenho a certeza», a percentagem que estava certa. Perto de 100% quer dizer que a confiança bate certo com o conhecimento. Só aparece a partir de 10 respostas.","Of the answers marked «I’m sure», the share that was right. Close to 100% means confidence matches knowledge. Shows up after 10 answers."),
-  pos:TL("O teu lugar entre os colegas visíveis da mesma certificação, ordenado pelo índice de confiança.","Your place among the visible classmates of the same certification, sorted by the confidence index."),
-  order:TL("Ordena pelo índice de confiança. Em caso de empate, desempata pela prontidão, depois pelo banco visto e por fim pelo número de respostas.","Sorted by the confidence index. Ties are broken by readiness, then bank seen, then number of answers."),
+  points:TL("Pontos do ranking, de 0 a 100: 60% prontidão + 40% média dos últimos 3 simulados (sem simulado conta 0). Só entra o que mostra se passarias no exame. Ritmo, calibração e dias seguidos não contam.","Ranking points, 0 to 100: 60% readiness + 40% average of the last 3 practice exams (no exam counts as 0). Only what shows whether you’d pass the exam counts. Pace, calibration and day streak don’t."),
+  pos:TL("O teu lugar entre os colegas visíveis da mesma certificação, ordenado pelos pontos.","Your place among the visible classmates of the same certification, sorted by points."),
+  order:TL("Ordena pelos pontos (60% prontidão + 40% simulados). Em caso de empate, desempata pelos simulados, depois pelo banco visto e por fim pelo número de respostas.","Sorted by points (60% readiness + 40% practice exams). Ties are broken by practice exams, then bank seen, then number of answers."),
   dom:TL("Cobertura e acerto em cada um dos domínios do exame, com o peso que cada um tem.","Coverage and accuracy in each exam domain, with the weight each one has."),
   w:TL("Quanto o domínio pesa no exame, segundo o blueprint oficial.","How much the domain weighs in the exam, according to the official blueprint."),
   seen:TL("Percentagem das questões deste domínio já respondidas pelo menos uma vez.","Share of this domain’s questions answered at least once."),
@@ -1373,7 +1374,7 @@ function lbProfileHTML(r){
   var rows=lbSorted(), pos=-1; rows.forEach(function(x,i){if(x.user_id===r.user_id)pos=i;});
   var first=lbNum(p.first), am=lbNum(p.avg_ms);
   var sub='<p class="small muted pf-sub">'+(pos>=0?(pos+1)+"º "+TL("de ","of ")+rows.length+" · ":"")+TL("atualizado a ","updated ")+dmy(r.updated_at)+(first?" · "+TL("a estudar desde ","studying since ")+dmy(first):"")+"</p>";
-  var kv=[[fmt1(lbNum(r.score)||0),TL("índice de confiança","confidence index"),"score"],[lbPctTxt(r.readiness),TL("prontidão","readiness"),"readiness"],[lbPctTxt(r.coverage),TL("do banco visto","of the bank seen"),"coverage"],
+  var kv=[[fmt1(lbPoints(r)),TL("pontos no ranking","ranking points"),"points"],[fmt1(lbNum(r.score)||0),TL("índice de confiança","confidence index"),"score"],[lbPctTxt(r.readiness),TL("prontidão","readiness"),"readiness"],[lbPctTxt(r.coverage),TL("do banco visto","of the bank seen"),"coverage"],
     [lbPctTxt(r.accuracy7),TL("acerto nos últimos 7 dias","accuracy, last 7 days"),"acc7"],[lbPctTxt(r.exams_avg),TL("média dos últimos simulados","average of recent exams"),"exams"],[lbNum(r.streak)||0,TL("dias seguidos","day streak"),"streak"],
     [lbNum(r.answers)||0,TL("respostas no total","answers in total"),"answers"],[lbNum(p.studied)==null?"—":lbNum(p.studied),TL("dias de estudo","study days"),"studied"],[am==null?"—":mmss(am),TL("tempo médio por questão","average time per question"),"avgms"],
     [lbPctTxt(p.sure),TL("certas quando diz «tenho a certeza»","right when saying «I’m sure»"),"sure"]];
@@ -1407,10 +1408,15 @@ function lbOpenProfile(id){
   d.innerHTML='<div class="dlg-head"><h2>'+esc(r.display_name)+(r.user_id===window.CSA_BACKEND.uid?' <span class="tag">'+TL("tu","you")+"</span>":"")+'</h2><button class="dlg-x" data-g="dlgclose" aria-label="'+TL("Fechar","Close")+'">×</button></div><div class="dlg-body">'+lbProfileHTML(r)+"</div>";
   if(!d.open)d.showModal();
 }
-function lbSorted(){return (ui.lbRows||[]).slice().sort(function(a,b){return (b.score-a.score)||(b.readiness-a.readiness)||(b.coverage-a.coverage)||(b.answers-a.answers);});}
+/* pontos do ranking (0–100): só o que mostra se a pessoa passaria no exame.
+   Prontidão (certas sobre o banco todo, por isso ver poucas questões não ajuda) e média dos simulados (sem simulado conta 0).
+   Ritmo, calibração e dias seguidos ficam de fora: dizem como se estuda, não quanto se sabe. */
+var LB_W={rd:.6,ex:.4};
+function lbPoints(r){return Math.round(10*(LB_W.rd*(lbNum(r.readiness)||0)+LB_W.ex*(lbNum(r.exams_avg)||0)))/10;}
+function lbSorted(){return (ui.lbRows||[]).slice().sort(function(a,b){return (lbPoints(b)-lbPoints(a))||((lbNum(b.exams_avg)||0)-(lbNum(a.exams_avg)||0))||(b.coverage-a.coverage)||(b.answers-a.answers);});}
 function vGlobal(){
   var B=window.CSA_BACKEND;
-  var head='<div class="vh"><div><h1>'+TL("Ranking global","Global ranking")+'</h1><p>'+TL("Quem está mais preparado para o exame, segundo os dados da plataforma. Entra automaticamente quem já respondeu a questões.","Who is most ready for the exam, according to the platform’s data. Everyone who has answered questions joins automatically.")+"</p></div></div>";
+  var head='<div class="vh"><div><h1>'+TL("Ranking global","Global ranking")+'</h1><p>'+TL("Quem está mais perto de passar no exame: conta o que já respondes certo em todo o banco e os simulados. Entra automaticamente quem já respondeu a questões.","Who is closest to passing the exam: what you already answer correctly across the whole bank, plus practice exams. Everyone who has answered questions joins automatically.")+"</p></div></div>";
   if(!B)return head+'<div class="empty"><b>'+TL("Disponível só na versão online.","Only available in the online version.")+"</b></div>";
   if(!ui.lbRows){
     if(!ui.lbLoading){ui.lbLoading=1;B.lbList().then(function(rows){ui.lbRows=rows;ui.lbLoading=0;ui.lbErr=null;if(view==="global")render();}).catch(function(e){ui.lbRows=[];ui.lbLoading=0;ui.lbErr=e||1;if(view==="global")render();});}
@@ -1431,7 +1437,7 @@ function vGlobal(){
     var hide=ui.armed==="lbleave"?'<button class="btn" data-act="lbleavego" style="border-color:var(--bad);color:var(--bad)">'+TL("Esconder mesmo","Hide me")+'</button> <button class="link" data-act="lbcancel">'+TL("Cancelar","Cancel")+"</button>"
       :'<button class="link" data-act="lbleave">'+TL("Esconder-me do ranking","Hide me from the ranking")+"</button>";
     you='<section class="panel lbme"><div><p class="lbl">'+TL("A tua posição","Your position")+info(H.pos)+'</p><div class="lbpos"><b>'+(myPos>=0?(myPos+1)+"º":"—")+'</b><span>'+TL("de ","of ")+rows.length+" · "+esc(mine.display_name)+"</span></div></div>"+
-      '<div class="kv" style="margin:0"><div><b>'+fmt1(st.score)+'</b><span>'+TL("índice de confiança","confidence index")+info(H.score)+'</span></div><div><b>'+st.readiness+'%</b><span>'+TL("prontidão","readiness")+info(H.readiness)+'</span></div><div><b>'+st.coverage+'%</b><span>'+TL("do banco visto","of the bank seen")+info(H.coverage)+"</span></div></div>"+
+      '<div class="kv" style="margin:0"><div><b>'+fmt1(lbPoints(st))+'</b><span>'+TL("pontos","points")+info(H.points)+'</span></div><div><b>'+fmt1(st.score)+'</b><span>'+TL("índice de confiança","confidence index")+info(H.score)+'</span></div><div><b>'+st.readiness+'%</b><span>'+TL("prontidão","readiness")+info(H.readiness)+'</span></div><div><b>'+st.coverage+'%</b><span>'+TL("do banco visto","of the bank seen")+info(H.coverage)+"</span></div></div>"+
       '<div class="row lbactions"><button class="btn" data-act="lbprof" data-v="'+esc(me)+'">'+TL("Ver o meu perfil","View my profile")+'</button><button class="link" data-act="lbrename">'+TL("Mudar o nome","Change name")+"</button>"+hide+"</div></section>";
   }else{
     you='<section class="panel lbjoin"><p class="lbl">'+TL("Ainda não estás no ranking","You’re not in the ranking yet")+'</p><p class="small muted" style="margin:0;max-width:62ch">'+
@@ -1440,18 +1446,36 @@ function vGlobal(){
   var medal=["🥇","🥈","🥉"];
   var trs=rows.map(function(r,i){
     var isMe=r.user_id===me;
-    return '<tr'+(isMe?' class="me"':"")+'><td class="pos">'+(medal[i]||(i+1))+'</td><td class="nm">'+esc(r.display_name)+(isMe?' <span class="tag">'+TL("tu","you")+"</span>":"")+'</td><td class="r"><b>'+fmt1(Number(r.score))+"</b></td>"+
-      '<td class="r">'+r.readiness+'%</td><td class="r">'+r.coverage+'%</td><td class="r">'+(r.accuracy7==null?"—":r.accuracy7+"%")+'</td><td class="r">'+(r.exams_avg==null?"—":r.exams_avg+"%")+"</td>"+
+    return '<tr'+(isMe?' class="me"':"")+'><td class="pos">'+(medal[i]||(i+1))+'</td><td class="nm">'+esc(r.display_name)+(isMe?' <span class="tag">'+TL("tu","you")+"</span>":"")+'</td><td class="r"><b>'+fmt1(lbPoints(r))+"</b></td>"+
+      '<td class="r">'+fmt1(Number(r.score))+'</td><td class="r">'+r.readiness+'%</td><td class="r">'+r.coverage+'%</td><td class="r">'+(r.accuracy7==null?"—":r.accuracy7+"%")+'</td><td class="r">'+(r.exams_avg==null?"—":r.exams_avg+"%")+"</td>"+
       '<td class="r">'+r.streak+'</td><td class="r small faint">'+dmy(r.updated_at)+'</td><td class="r"><button class="btn lbview" data-act="lbprof" data-v="'+esc(r.user_id)+'">'+TL("Ver perfil","View profile")+"</button></td></tr>";
   }).join("");
-  var table=rows.length?'<div class="tbl"><table class="bp lbt"><thead><tr><th>#</th><th>'+TL("Nome","Name")+'</th><th class="r">'+TL("Índice","Index")+info(H.score)+'</th><th class="r">'+TL("Prontidão","Readiness")+info(H.readiness)+'</th><th class="r">'+TL("Banco visto","Bank seen")+info(H.coverage)+'</th><th class="r">'+TL("Acerto 7 d","Accuracy 7 d")+info(H.acc7)+'</th><th class="r">'+TL("Simulados","Exams")+info(H.exams)+'</th><th class="r">'+TL("Dias seguidos","Day streak")+info(H.streak)+'</th><th class="r">'+TL("Atualizado","Updated")+info(H.updated)+'</th><th><span class="sr-only">'+TL("Perfil","Profile")+"</span></th></tr></thead><tbody>"+trs+"</tbody></table></div>"
+  var table=rows.length?'<div class="tbl"><table class="bp lbt"><thead><tr><th>#</th><th>'+TL("Nome","Name")+'</th><th class="r">'+TL("Pontos","Points")+info(H.points)+'</th><th class="r">'+TL("Índice","Index")+info(H.score)+'</th><th class="r">'+TL("Prontidão","Readiness")+info(H.readiness)+'</th><th class="r">'+TL("Banco visto","Bank seen")+info(H.coverage)+'</th><th class="r">'+TL("Acerto 7 d","Accuracy 7 d")+info(H.acc7)+'</th><th class="r">'+TL("Simulados","Exams")+info(H.exams)+'</th><th class="r">'+TL("Dias seguidos","Day streak")+info(H.streak)+'</th><th class="r">'+TL("Atualizado","Updated")+info(H.updated)+'</th><th><span class="sr-only">'+TL("Perfil","Profile")+"</span></th></tr></thead><tbody>"+trs+"</tbody></table></div>"
     :'<p class="small muted" style="margin:0">'+(ui.lbErr?TL("Não consegui carregar o ranking. ","Couldn’t load the ranking. ")+lbErrMsg(ui.lbErr).replace(/^Não consegui guardar\. Tenta outra vez\.$|^Couldn’t save\. Try again\.$/,TL("Recarrega a página.","Reload the page.")):TL("Ainda ninguém respondeu a questões.","Nobody has answered any questions yet."))+"</p>";
-  return head+'<div class="stack">'+you+'<section class="panel"><div class="phead"><p class="lbl">'+TL("Classificação","Standings")+'</p><span class="small faint">'+TL("Ordenado pelo índice de confiança","Sorted by confidence index")+info(H.order)+"</span></div>"+table+
-    '<p class="small faint" style="margin:14px 0 0">'+TL("O índice de confiança (0 a 10) junta acerto, simulados, cobertura, retenção, calibração e ritmo, como em Progresso. Prontidão = % do exame que respondes certo agora, com o peso de cada domínio.","The confidence index (0 to 10) combines accuracy, practice exams, coverage, retention, calibration and pace, as in Progress. Readiness = % of the exam you answer correctly now, weighted by domain.")+"</p></section></div>";
+  return head+'<div class="stack">'+you+'<section class="panel"><div class="phead"><p class="lbl">'+TL("Classificação","Standings")+'</p><span class="small faint">'+TL("Ordenado por pontos","Sorted by points")+info(H.order)+"</span></div>"+table+
+    '<p class="small faint" style="margin:14px 0 0">'+TL("Pontos (0 a 100) = 60% prontidão + 40% média dos simulados. Prontidão = % do exame que respondes certo agora, com o peso de cada domínio. O índice de confiança continua visível, mas serve para ti (inclui ritmo e calibração) e não decide a ordem.","Points (0 to 100) = 60% readiness + 40% practice exam average. Readiness = % of the exam you answer correctly now, weighted by domain. The confidence index is still shown, but it’s for you (it includes pace and calibration) and doesn’t decide the order.")+"</p></section></div>";
 }
 
 /* ---------------- conta, privacidade e notas de atualização (versão online) ---------------- */
 var NEWS=[
+  {d:"2026-11-24",t:["Ranking mais justo","A fairer ranking"],pt:[
+    "O que muda: o ranking passa a ordenar por pontos, de 0 a 100. Pontos = 60% prontidão + 40% média dos últimos 3 simulados. A nova coluna «Pontos» aparece em primeiro lugar.",
+    "Porquê: até agora a ordem seguia o índice de confiança. Esse índice mede o acerto e a retenção só nas questões que cada pessoa já viu. Assim, quem tinha visto menos do banco podia ficar à frente de quem viu mais, tinha mais prontidão e melhores simulados.",
+    "O índice também dá 20% ao ritmo e à calibração. São bons sinais para cada um acompanhar o seu estudo, mas mostram como se estuda, não quanto se sabe. Por isso deixam de influenciar a ordem.",
+    "Prontidão (60%): respostas certas sobre o banco inteiro, com o peso de cada domínio do exame. As questões ainda não vistas contam como não sabidas, por isso ver poucas e acertá-las já não chega para subir. Tem mais peso por ser estável: não depende de um dia bom ou mau.",
+    "Simulados (40%): trazem o realismo do exame, com tempo limite e questões sorteadas. Quem ainda não fez nenhum simulado válido (30 ou mais questões, com 80% respondidas) fica com 0 nesta parte, por isso fazer simulados passa a contar.",
+    "Os dias seguidos nunca contaram para a ordem e continuam a não contar. Aparecem só como informação.",
+    "Em caso de empate, decidem os simulados, depois o banco visto e por fim o número de respostas.",
+    "O índice de confiança continua visível no ranking, no perfil e em Progresso, como indicador pessoal para saberes quando marcar o exame."],
+    en:[
+    "What changes: the ranking now sorts by points, from 0 to 100. Points = 60% readiness + 40% average of the last 3 practice exams. The new «Points» column comes first.",
+    "Why: until now the order followed the confidence index. That index measures accuracy and retention only on the questions each person has already seen. So someone who had seen less of the bank could rank above someone who had seen more, with higher readiness and better practice exams.",
+    "The index also gives 20% to pace and calibration. They’re good signals for tracking your own study, but they show how you study, not how much you know. So they no longer affect the order.",
+    "Readiness (60%): correct answers over the whole bank, weighted by each exam domain. Questions not seen yet count as not known, so seeing a few and getting them right is no longer enough to climb. It weighs more because it’s stable: it doesn’t depend on a good or bad day.",
+    "Practice exams (40%): they bring the realism of the exam, with a time limit and random questions. Anyone without a valid practice exam yet (30 or more questions, 80% answered) gets 0 in this part, so taking practice exams now counts.",
+    "The day streak never counted towards the order and still doesn’t. It’s shown for information only.",
+    "Ties are broken by practice exams, then bank seen, then number of answers.",
+    "The confidence index is still shown in the ranking, on profiles and in Progress, as a personal indicator to help you decide when to book the exam."]},
   {d:"2026-11-20",pt:["Conta e perfil numa página própria: nome no ranking, visibilidade, idioma, tema, palavra-passe, exportar e importar o progresso e apagar a conta.","Privacidade e sobre a app numa página própria.","Esta página de notas de atualização, para veres o que muda na app.","O menu lateral ajusta o tamanho à altura da janela: aproveita o espaço e cabe no ecrã sem barra de rolagem."],
     en:["Account and profile on its own page: ranking name, visibility, language, theme, password, export and import your progress, and delete your account.","Privacy and about the app on its own page.","This release notes page, so you can see what changes in the app.","The side menu sizes itself to the window height: it uses the space and fits the screen with no scrollbar."]},
   {d:"2026-11-19",t:["Atualização da tarde","Afternoon update"],pt:["As opções de resposta aparecem por ordem diferente sempre que a questão surge, para não se decorar a posição da resposta.","Morte súbita: entram sempre todas as questões do banco, sem filtros. O formato passou a ser a primeira escolha em Montar sessão.","Ranking global automático: entra toda a gente que já respondeu a questões. Podes mudar o nome ou esconder-te.","Ver perfil: as estatísticas de cada colega, com o acerto por domínio ao lado do teu.","Botões «i» que explicam cada índice e cada KPI.","Novo seletor de tema ☀ ☾ ao lado do idioma."],
