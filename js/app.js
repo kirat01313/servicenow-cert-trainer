@@ -150,7 +150,7 @@ function bankSel(){var b=S.cfg.bank;return hasX()&&(b==="x"||b==="all")?b:"d";}
 function inBank(q,b){b=b||bankSel();return b==="all"||(b==="x"?isX(q):!isX(q));}
 function pool(dep){if(dep===false)return D.questions.filter(function(q){return q.scorable&&!q.dep&&!isX(q);});var inc=dep===undefined?S.cfg.dep:dep;return D.questions.filter(function(q){return q.scorable&&(inc||!q.dep)&&inBank(q);});}
 function examPool(){return D.questions.filter(function(q){return q.scorable&&!q.dep&&inBank(q);});}
-function srcTag(q){return hasX()?(isX(q)?'<span class="tag src x">ExamBase</span>':'<span class="tag src">Deloitte</span>'):"";}
+function srcTag(q){return hasX()?(isX(q)?'<span class="tag bk bk-x">ExamBase</span>':'<span class="tag bk bk-d">Deloitte</span>'):"";}
 function bankFieldHTML(where){
   if(!hasX())return "";
   var dep=where==="exam"?false:S.cfg.dep, b=bankSel();
