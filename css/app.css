@@ -678,3 +678,12 @@ details.topic[open]>summary span{display:none}
 .seg.fmtseg button+button{border-left:1px solid var(--line)}
 .mk-death{margin:4px 0 0;padding:12px 14px;border-radius:11px;background:var(--sunk);font-size:13.5px;line-height:1.5;color:var(--ink-2)}
 @media (max-width:560px){.seg.fmtseg{grid-template-columns:1fr}.seg.fmtseg button+button{border-left:0;border-top:1px solid var(--line)}}
+
+/* bancos de questões */
+.bankf{margin-bottom:16px}
+.bankf .bk-n{opacity:.6;font-variant-numeric:tabular-nums;margin-left:2px}
+.bankf .bk-note{margin:8px 0 0}
+.tag.src{background:var(--sunk);color:var(--ink-2)}
+.tag.src.x{background:#e9e1fb;color:#4b2a8f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tag.src.x{background:#3a2d5c;color:#d9ccff}}
+:root[data-theme="dark"] .tag.src.x{background:#3a2d5c;color:#d9ccff}

@@ -142,7 +142,27 @@ function syncText(){
 }
 
 /* ---------------- conjuntos de questões ---------------- */
-function pool(dep){var inc=dep===undefined?S.cfg.dep:dep;return D.questions.filter(function(q){return q.scorable&&(inc||!q.dep);});}
+/* bancos de questões: Deloitte (o do curso) e ExamBase (src "x", questões extra revistas pela turma).
+   pool(false) é sempre o banco Deloitte sem deprecated: é o que conta para estatísticas, índice, prontidão e ranking. */
+function isX(q){return q.src==="x";}
+function hasX(){return !!(D&&D.questions.some(isX));}
+function bankSel(){var b=S.cfg.bank;return hasX()&&(b==="x"||b==="all")?b:"d";}
+function inBank(q,b){b=b||bankSel();return b==="all"||(b==="x"?isX(q):!isX(q));}
+function pool(dep){if(dep===false)return D.questions.filter(function(q){return q.scorable&&!q.dep&&!isX(q);});var inc=dep===undefined?S.cfg.dep:dep;return D.questions.filter(function(q){return q.scorable&&(inc||!q.dep)&&inBank(q);});}
+function examPool(){return D.questions.filter(function(q){return q.scorable&&!q.dep&&inBank(q);});}
+function srcTag(q){return hasX()?(isX(q)?'<span class="tag src x">ExamBase</span>':'<span class="tag src">Deloitte</span>'):"";}
+function bankFieldHTML(where){
+  if(!hasX())return "";
+  var dep=where==="exam"?false:S.cfg.dep, b=bankSel();
+  function cnt(k){return D.questions.filter(function(q){return q.scorable&&(dep||!q.dep)&&inBank(q,k);}).length;}
+  function btn(k,l){return '<button data-act="bank" data-v="'+k+'" aria-pressed="'+(b===k)+'">'+l+' <span class="bk-n">'+cnt(k)+"</span></button>";}
+  var help=TL("Deloitte: o banco de questões do curso. ExamBase: questões extra de um site público de prática (exambase.com), que não estavam no banco Deloitte, revistas pela turma e confirmadas na documentação oficial sempre que possível. Cada questão mostra de que banco vem. As estatísticas, o índice, a prontidão e o ranking contam só o banco Deloitte, para serem comparáveis entre colegas.",
+    "Deloitte: the course question bank. ExamBase: extra questions from a public practice site (exambase.com) that weren’t in the Deloitte bank, reviewed by the class and checked against the official docs whenever possible. Each question shows which bank it comes from. Stats, the index, readiness and the ranking count the Deloitte bank only, so they stay comparable between classmates.");
+  return '<div class="field bankf"><span>'+TL("Banco de questões","Question bank")+info(help)+'</span><div class="seg fmtseg" role="group" aria-label="'+TL("Banco de questões","Question bank")+'">'+
+    btn("d","Deloitte")+btn("x","ExamBase")+btn("all",TL("Ambos","Both"))+"</div>"+
+    (b!=="d"&&(where==="exam"||where==="mk")?'<p class="small faint bk-note">'+TL("Com questões ExamBase, o simulado não conta para o índice nem para o ranking.","With ExamBase questions, the practice exam doesn’t count towards the index or the ranking.")+"</p>":"")+
+    (b!=="d"&&where==="train"?'<p class="small faint bk-note">'+TL("As estatísticas e o ranking continuam a contar só o banco Deloitte.","Stats and the ranking still count the Deloitte bank only.")+"</p>":"")+"</div>";
+}
 function rec(id){return S.p[id];}
 function dueList(){var e=eod();return pool().filter(function(q){var r=rec(q.id);return r&&r.n>0&&r.due<=e;}).sort(function(a,b){return rec(a.id).due-rec(b.id).due;});}
 function freshList(){return pool().filter(function(q){var r=rec(q.id);return !r||!r.n;});}
@@ -310,7 +330,7 @@ function next(){
 
 /* ---------------- simulado ---------------- */
 function startExam(opt){
-  var strict=pool(false), ids=[], mins=D.meta.exam.minutes;
+  var strict=examPool(), ids=[], mins=D.meta.exam.minutes;
   if(opt&&opt.ids){ids=opt.ids.slice();mins=opt.min;}
   else{
     D.domains.forEach(function(d){
@@ -320,9 +340,10 @@ function startExam(opt){
       shuffle(inD.filter(function(q){return ids.indexOf(q.id)<0;})).slice(0,n-wr.length).forEach(function(q){ids.push(q.id);});
     });
     if(ids.length<60){shuffle(strict.filter(function(q){return ids.indexOf(q.id)<0;})).slice(0,60-ids.length).forEach(function(q){ids.push(q.id);});}
+    if(ids.length<60)mins=Math.max(1,Math.round(ids.length*1.5));
   }
   var now=Date.now();
-  S.exam={at:now,ends:now+mins*60e3,q:shuffle(ids),a:{},m:{},i:0,t:{},vt:now,min:mins,label:opt&&opt.label||""};
+  S.exam={bank:bankSel(),at:now,ends:now+mins*60e3,q:shuffle(ids),a:{},m:{},i:0,t:{},vt:now,min:mins,label:opt&&opt.label||""};
   ui.examConfirm=false; ui.examGrid=false; ui.resultAt=null;
   if(S.pomo.running&&S.pomo.mode==="focus"){pomoPause();toast(TL("O Pomodoro ficou em pausa: o exame real são 90 minutos seguidos.","The Pomodoro has been paused: the real exam is 90 minutes in one go."));}
   saveLocal();
@@ -357,7 +378,7 @@ function finishExam(){
     if(a.length)record(q,right,"x",(e.t||{})[id],"x");
   });
   var t={}; for(var k in (e.t||{}))t[k]=Math.round(e.t[k]/1000)*1000;
-  var res={seed:e.seed,at:e.at,end:Math.min(Date.now(),e.ends),n:e.q.length,ok:ok,byD:byD,wrong:wrong,ans:e.a,q:e.q.slice(),t:t,min:e.min||D.meta.exam.minutes,label:e.label||""};
+  var res={seed:e.seed,bank:e.bank||"d",at:e.at,end:Math.min(Date.now(),e.ends),n:e.q.length,ok:ok,byD:byD,wrong:wrong,ans:e.a,q:e.q.slice(),t:t,min:e.min||D.meta.exam.minutes,label:e.label||""};
   snapDay();
   S.exams.push(res); S.exam=null; ui.resultAt=res.at; ui.examConfirm=false; ui.histTab=nA>=e.q.length?"done":"int";
   markDirty("e"); saveLocal(); render(); window.scrollTo(0,0);
@@ -796,7 +817,7 @@ function logAll(){return S.log||[];}
 function avgMs(n){var L=logAll().filter(function(e){return e[4]>0;}).slice(-(n||200));if(L.length<5)return null;return L.reduce(function(a,e){return a+Math.min(e[4],300000);},0)/L.length;}
 var MPQ_MAX=4;
 function minutesPerQ(){var sm=0,sq=0,t=Date.now();for(var i=0;i<30;i++){var d=S.days[dkey(t-i*DAY)];if(d&&d.sq){sm+=Math.min(d.sm||0,d.sq*MPQ_MAX);sq+=d.sq;}}return sq>=20?clamp(sm/sq,0.5,MPQ_MAX):1.2;}
-function eligibleExams(){return S.exams.filter(function(e){var s=exStats(e);return e.n>=30&&s.nA>=e.n*0.8;});}
+function eligibleExams(){return S.exams.filter(function(e){var s=exStats(e);return (e.bank||"d")==="d"&&e.n>=30&&s.nA>=e.n*0.8;});}
 function examPct(e){var s=exStats(e);return 100*s.okA/e.n;}
 function trail(t,n){var q=0,ok=0;for(var j=0;j<n;j++){var d=S.days[dkey(t-j*DAY)];if(d){q+=d.q||0;ok+=d.ok||0;}}return {q:q,ok:ok};}
 
@@ -1089,7 +1110,7 @@ function peekNext(){var s=S.sess;if(!s||ui.peek==null)return;ui.peek++;if(ui.pee
 function vReview(){
   var s=S.sess, idx=ui.peek, q=Q[s.q[idx]], lg=(s.log||{})[idx]||null, ch=lg?lg.ch:[], tot=s.q.length;
   var head='<div class="sessbar"><b>'+esc(lbl(s.label))+'</b><span class="num">'+(idx+1)+"/"+tot+'</span><span class="t"><i style="width:'+pct(s.i,tot)+'%"></i></span><button class="link" data-act="peekcur">'+(s.i<tot?TL("Voltar à questão ","Back to question ")+(s.i+1):TL("Voltar ao resumo","Back to the summary"))+"</button></div>";
-  var meta='<div class="qmeta"><span class="qno">'+esc(q.label||("Question "+q.id))+'</span><span class="tag">D'+q.d+" · "+esc(q.sub)+TL('</span><span class="tag rep">Já respondida</span>','</span><span class="tag rep">Already answered</span>')+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+boxes(q.id)+"</div>";
+  var meta='<div class="qmeta"><span class="qno">'+esc(q.label||("Question "+q.id))+'</span>'+srcTag(q)+'<span class="tag">D'+q.d+" · "+esc(q.sub)+TL('</span><span class="tag rep">Já respondida</span>','</span><span class="tag rep">Already answered</span>')+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+boxes(q.id)+"</div>";
   var v=!lg?TL('<div class="verdict nt">A correta é ','<div class="verdict nt">The correct answer is ')+dls(q,q.ans)+".</div>"
     :lg.f==="n"?TL('<div class="verdict nt"><b>Pediste para ver a resposta.</b> A correta é ','<div class="verdict nt"><b>You asked to see the answer.</b> The correct answer is ')+dls(q,q.ans)+".</div>"
     :lg.c?TL('<div class="verdict ok"><b>Acertaste</b> · ','<div class="verdict ok"><b>Correct</b> · ')+CONF[lg.f]+(lg.ms?" · "+mmss(lg.ms):"")+".</div>"
@@ -1111,7 +1132,7 @@ function vChooser(){
   var sizes=[10,20,30,999].map(function(n){return '<option value="'+n+'"'+(ui.size===n?" selected":"")+">"+(n===999?TL("Todas","All"):n)+"</option>";}).join("");
   var npd=[5,10,15,20,25,30,40].concat(S.cfg.newPerDay&&[5,10,15,20,25,30,40].indexOf(S.cfg.newPerDay)<0?[S.cfg.newPerDay]:[]).sort(function(a,b){return a-b;}).map(function(n){return '<option value="'+n+'"'+(S.cfg.newPerDay===n?" selected":"")+">"+n+"</option>";}).join("");
   return TL('<div class="read"><div class="vh"><div><h1>Treino</h1><p>','<div class="read"><div class="vh"><div><h1>Practice</h1><p>')+all+TL(' questões no banco',' questions in the bank')+(S.cfg.dep?TL(" (com deprecated)"," (with deprecated)"):"")+TL('. Para escolher domínio, tema, módulo e número de questões, usa <a class="link" href="#montar">Montar sessão</a>.</p></div></div>','. To choose domain, topic, module and number of questions, use <a class="link" href="#montar">Build a session</a>.</p></div></div>')+
-  '<section class="panel"><div class="modes">'+
+  '<section class="panel">'+bankFieldHTML("train")+'<div class="modes">'+
     mode("smart",TL("Sessão de hoje","Today’s session"),TL("Revisões que chegaram à data, questões que erraste (até ","Reviews that are due, questions you got wrong (up to ")+Math.round(wrongCap()*100)+TL("% da sessão) e novas, misturadas entre domínios. No máximo ","% of the session) and new ones, mixed across domains. At most ")+sessMax()+TL(" questões: o que sobrar fica para a sessão seguinte."," questions: anything left over goes to the next session."),smart)+
     mode("due",TL("Só revisões","Reviews only"),TL("Questões que já viste e que o calendário pede para rever hoje.","Questions you’ve already seen that the schedule asks you to review today."),due)+
     mode("hc",TL("Erros confiantes","Confident mistakes"),TL("Erraste com a certeza de estar certo. São as primeiras a rever.","You got them wrong while sure you were right. They’re the first to review."),hc)+
@@ -1136,7 +1157,7 @@ function vQuestion(){
   var done=s.i, tot=s.q.length;
   var head='<div class="sessbar"><b>'+esc(lbl(s.label))+'</b><span class="num">'+(done+1)+"/"+tot+'</span>'+deathTag(s)+'<span class="t"><i style="width:'+pct(done,tot)+'%"></i></span>'+(s.i?TL('<button class="link" data-act="prevq">← Anterior</button>','<button class="link" data-act="prevq">← Previous</button>'):"")+TL('<button class="link" data-act="endsess">Terminar</button></div>','<button class="link" data-act="endsess">Finish</button></div>');
   if(!L)qtStart(q.id);
-  var meta='<div class="qmeta"><span class="qno">'+esc(q.label||("Question "+q.id))+'</span><span class="tag">D'+q.d+" · "+esc(q.sub)+"</span>"+(s.mode==="redo"?TL('<span class="tag rep">Bloco final</span>','<span class="tag rep">Final block</span>'):"")+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+(q.dep?'<span class="tag dep">Deprecated</span>':"")+(L?"":'<span class="qclock" title="'+TL("Tempo nesta questão (no exame: 1:30 por questão)","Time on this question (exam pace: 1:30 per question)")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg><span id="qClock">'+mmss(qtElapsed())+"</span></span>")+boxes(q.id)+"</div>";
+  var meta='<div class="qmeta"><span class="qno">'+esc(q.label||("Question "+q.id))+'</span>'+srcTag(q)+'<span class="tag">D'+q.d+" · "+esc(q.sub)+"</span>"+(s.mode==="redo"?TL('<span class="tag rep">Bloco final</span>','<span class="tag rep">Final block</span>'):"")+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+(q.dep?'<span class="tag dep">Deprecated</span>':"")+(L?"":'<span class="qclock" title="'+TL("Tempo nesta questão (no exame: 1:30 por questão)","Time on this question (exam pace: 1:30 per question)")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/></svg><span id="qClock">'+mmss(qtElapsed())+"</span></span>")+boxes(q.id)+"</div>";
   var body;
   if(!L){
     var ready=ui.sel.length===q.ans.length;
@@ -1187,12 +1208,12 @@ function nextStepHTML(E){
 function vSimulado(){
   if(S.exam)return vExam();
   if(ui.resultAt){var r=S.exams.filter(function(e){return e.at===ui.resultAt;})[0];if(r)return vResult(r);}
-  var strict=pool(false), rows=D.domains.map(function(d){var n=Math.round(60*d.w/100);
+  var strict=examPool(), rows=D.domains.map(function(d){var n=Math.round(60*d.w/100);
     return "<tr><td>D"+d.id+" · "+esc(d.name)+'<div class="small faint">'+d.subs.map(esc).join(" · ")+'</div></td><td class="r">'+d.w+'%</td><td class="r">'+n+'</td><td class="r">'+strict.filter(function(q){return q.d===d.id;}).length+"</td></tr>";}).join("");
   var hist=S.exams.length?histHTML():"";
   return TL('<div class="vh"><div><h1>Simulado</h1><p>Segue o blueprint oficial do CSA (janeiro de 2026)</p></div></div><div class="stack"><div class="grid2">','<div class="vh"><div><h1>Practice exam</h1><p>Follows the official CSA blueprint (January 2026)</p></div></div><div class="stack"><div class="grid2">')+
     TL('<section class="panel"><p class="lbl">Como é o exame</p><ul class="rules"><li>60 questões em 90 minutos: 1,5 minutos por questão.</li><li>Escolha múltipla: a questão diz quantas opções escolher. Não há crédito parcial.</li><li>Cada questão vale um ponto. O corte não é público e nem sempre é 70%.</li><li>Aqui não vês se acertaste até ao fim. Podes marcar questões para voltar a elas.</li><li>Até 30% das questões de cada domínio vêm das que erraste antes.</li></ul>','<section class="panel"><p class="lbl">What the exam is like</p><ul class="rules"><li>60 questions in 90 minutes: 1.5 minutes per question.</li><li>Multiple choice: the question says how many options to choose. There’s no partial credit.</li><li>Each question is worth one point. The cut score isn’t public and isn’t always 70%.</li><li>Here you don’t see whether you got it right until the end. You can mark questions to come back to them.</li><li>Up to 30% of each domain’s questions come from the ones you got wrong before.</li></ul>')+
-    TL('<div class="row" style="margin-top:20px"><button class="btn primary big" data-act="exam">Começar simulado</button></div><p class="small faint" style="margin:12px 0 0">Meta pessoal razoável: 80% ou mais em três simulados seguidos. Para um mini-simulado de um domínio, usa <a class="link" href="#montar">Montar sessão</a>.</p></section>','<div class="row" style="margin-top:20px"><button class="btn primary big" data-act="exam">Start practice exam</button></div><p class="small faint" style="margin:12px 0 0">A sensible personal target: 80% or more in three practice exams in a row. For a mini practice exam on one domain, use <a class="link" href="#montar">Build a session</a>.</p></section>')+
+    bankFieldHTML("exam")+TL('<div class="row" style="margin-top:20px"><button class="btn primary big" data-act="exam">Começar simulado</button></div><p class="small faint" style="margin:12px 0 0">Meta pessoal razoável: 80% ou mais em três simulados seguidos. Para um mini-simulado de um domínio, usa <a class="link" href="#montar">Montar sessão</a>.</p></section>','<div class="row" style="margin-top:20px"><button class="btn primary big" data-act="exam">Start practice exam</button></div><p class="small faint" style="margin:12px 0 0">A sensible personal target: 80% or more in three practice exams in a row. For a mini practice exam on one domain, use <a class="link" href="#montar">Build a session</a>.</p></section>')+
     TL('<section class="panel"><p class="lbl">Distribuição por domínio</p><div class="tbl"><table class="bp"><thead><tr><th>Domínio e temas</th><th class="r">Peso</th><th class="r">No simulado</th><th class="r">No banco</th></tr></thead><tbody>','<section class="panel"><p class="lbl">Distribution by domain</p><div class="tbl"><table class="bp"><thead><tr><th>Domain and topics</th><th class="r">Weight</th><th class="r">In the practice exam</th><th class="r">In the bank</th></tr></thead><tbody>')+rows+'</tbody></table></div>'+
     TL('<p class="small faint" style="margin:14px 0 0">O banco tem poucas questões de Instance Configuration (D2): complementa com o módulo 2 do guia.</p></section></div>','<p class="small faint" style="margin:14px 0 0">The bank has few Instance Configuration (D2) questions: supplement with module 2 of the guide.</p></section></div>')+
     hist+
@@ -1204,7 +1225,7 @@ function vExam(){
   var top='<div class="etop"><span class="clock" id="eClock">'+mmss(e.ends-Date.now())+'</span><span id="eCount">'+answered+"/"+e.q.length+TL(' respondidas</span>',' answered</span>')+(e.label?'<span class="tag">'+esc(lbl(e.label))+"</span>":"")+'<span class="sp"><button class="btn" data-act="egrid">'+(ui.examGrid?TL("Esconder lista","Hide list"):TL("Ver todas","View all"))+TL('</button><button class="btn" data-act="efinish">Terminar</button></span></div>','</button><button class="btn" data-act="efinish">Finish</button></span></div>');
   var grid=ui.examGrid?'<div class="grid">'+e.q.map(function(id,i){return '<button data-act="ejump" data-v="'+i+'" class="'+(e.a[id]?"a ":"")+(e.m[id]?"mk ":"")+(i===e.i?"cur":"")+TL('" aria-label="Questão ','" aria-label="Question ')+(i+1)+'">'+(i+1)+"</button>";}).join("")+'</div>':"";
   var conf=ui.examConfirm?'<div class="confirm"><p style="margin:0 0 12px">'+(e.q.length-answered?TL("Tens <b>","You have <b>")+(e.q.length-answered)+TL("</b> por responder","</b> unanswered")+(marked?TL(" e <b>"," and <b>")+marked+TL("</b> marcadas","</b> marked"):"")+TL(". O simulado fica nos interrompidos e o resultado conta só as que respondeste (no exame real, as em branco contam como erradas).",". The practice exam goes to the interrupted ones and the result counts only the ones you answered (in the real exam, blanks count as wrong)."):TL("Respondeste a todas","You answered them all")+(marked?TL(", mas tens <b>",", but you have <b>")+marked+TL("</b> marcadas para rever","</b> marked for review"):"")+".")+TL('</p><div class="row"><button class="btn primary" data-act="edone">Terminar e ver o resultado</button><button class="btn" data-act="enofin">Continuar o exame</button></div></div>','</p><div class="row"><button class="btn primary" data-act="edone">Finish and see the result</button><button class="btn" data-act="enofin">Continue the exam</button></div></div>'):"";
-  return '<div class="read">'+top+conf+grid+TL('<article class="qcard" style="margin-top:12px"><div class="qmeta"><span class="qno">Questão ','<article class="qcard" style="margin-top:12px"><div class="qmeta"><span class="qno">Question ')+(e.i+1)+TL(" de "," of ")+e.q.length+'</span>'+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+'<button class="btn markbtn" style="margin-left:auto;padding:4px 10px;font-size:12.5px" data-act="emark" aria-pressed="'+(e.m[q.id]?"true":"false")+'">'+(e.m[q.id]?TL("Marcada","Marked"):TL("Marcar para rever","Mark for review"))+'</button></div>'+stemHTML(q)+optsHTML(q,{sel:sel,act:"eopt"})+
+  return '<div class="read">'+top+conf+grid+TL('<article class="qcard" style="margin-top:12px"><div class="qmeta"><span class="qno">Questão ','<article class="qcard" style="margin-top:12px"><div class="qmeta"><span class="qno">Question ')+(e.i+1)+TL(" de "," of ")+e.q.length+'</span>'+srcTag(q)+(q.multi?TL('<span class="tag multi">Escolhe ','<span class="tag multi">Choose ')+q.ans.length+"</span>":"")+'<button class="btn markbtn" style="margin-left:auto;padding:4px 10px;font-size:12.5px" data-act="emark" aria-pressed="'+(e.m[q.id]?"true":"false")+'">'+(e.m[q.id]?TL("Marcada","Marked"):TL("Marcar para rever","Mark for review"))+'</button></div>'+stemHTML(q)+optsHTML(q,{sel:sel,act:"eopt"})+
     '<div class="nextrow" style="justify-content:space-between"><button class="btn" data-act="eprev"'+(e.i?"":" disabled")+TL('>Anterior</button><button class="btn primary" data-act="enext"','>Previous</button><button class="btn primary" data-act="enext"')+(e.i<e.q.length-1?TL('>Seguinte</button></div></article></div>','>Next</button></div></article></div>'):TL('>Terminar</button></div></article></div>','>Finish</button></div></article></div>'));
 }
 function paintExamTop(){
@@ -1253,7 +1274,7 @@ function histHTML(){
 function vResult(r){
   var s=exStats(r);
   var wr=s.wrongA.map(function(id,i){var q=Q[id],ch=(r.ans&&r.ans[id])||[],tm=s.t&&s.t[id];
-    var meta='<span class="tag">D'+q.d+" · "+esc(q.sub)+TL('</span><span>Escolheste <b class="no">','</span><span>You chose <b class="no">')+esc(dls(q,ch))+TL('</b></span><span>Certa <b class="yes">','</b></span><span>Correct <b class="yes">')+esc(dls(q,q.ans))+"</b></span>"+(tm?'<span class="num">'+mmss(tm)+"</span>":"")+'<span class="qid">'+esc(q.label||("Question "+q.id))+"</span>";
+    var meta=srcTag(q)+'<span class="tag">D'+q.d+" · "+esc(q.sub)+TL('</span><span>Escolheste <b class="no">','</span><span>You chose <b class="no">')+esc(dls(q,ch))+TL('</b></span><span>Certa <b class="yes">','</b></span><span>Correct <b class="yes">')+esc(dls(q,q.ans))+"</b></span>"+(tm?'<span class="num">'+mmss(tm)+"</span>":"")+'<span class="qid">'+esc(q.label||("Question "+q.id))+"</span>";
     return '<details class="wr"><summary><span class="wx">'+(i+1)+'</span><span><span class="ws">'+esc(q.stem)+'</span><span class="wmeta">'+meta+'</span></span><span class="chev" aria-hidden="true"></span></summary><div class="body">'+optsHTML(q,{chosen:ch,reveal:true})+explainHTML(q,ch)+"</div></details>";}).join("");
   var mins=Math.round(s.used/60000);
   var tag=s.complete?TL('<span class="pill ok">Completo</span>','<span class="pill ok">Complete</span>'):TL('<span class="pill warn">Interrompido</span>','<span class="pill warn">Interrupted</span>');
@@ -1458,6 +1479,26 @@ function vGlobal(){
 
 /* ---------------- conta, privacidade e notas de atualização (versão online) ---------------- */
 var NEWS=[
+  {d:"2026-11-26",t:["Banco ExamBase e escolha do banco de questões","ExamBase bank and question bank choice"],pt:[
+    "O que muda: passa a haver dois bancos de questões. Deloitte é o banco do curso. ExamBase são 36 questões extra de um site público de prática (exambase.com) que não estavam no nosso banco. Em Treino, Montar sessão (incluindo a morte súbita) e Simulado escolhes Deloitte, ExamBase ou Ambos. Cada questão mostra uma etiqueta com o banco de onde vem.",
+    "De onde vieram: o Rui reparou que o site tinha as mesmas perguntas que nós e fez uma folha com 47 questões, novas ou com respostas diferentes. O Vitor reviu as respostas e testou algumas na instância. Depois cruzámos o site diretamente: 330 das 408 questões foram comparadas uma a uma com o nosso banco, pelo texto da pergunta e das opções.",
+    "O que o cruzamento mostrou: 314 das 330 questões são iguais às nossas, com a mesma resposta. 10 não existiam no nosso banco e 6 tinham resposta diferente. O site usa praticamente o mesmo banco que nós.",
+    "As 6 respostas diferentes, e em nenhuma o nosso banco estava errado. Q36 (Basic Configuration UI16): a documentação oficial lista o formato de data, e «Form Header Size» não existe. Q248 (Knowledge): «Can Read» é sobre ler artigos, não sobre escrever. Q390 (formato de data e hora): a documentação confirma Menu do utilizador > Preferences > Language & Region. Q282 (botão Save): o Vitor confirmou na instância que não há uma opção só para o Save, por isso fica a glide.ui.advanced. Q118 e Q235 são deprecated; a Q235 não tinha resposta no banco e o site indica Process Automation Designer, que bate com a nossa nota.",
+    "Como escolhemos as 36: as 13 questões da folha que já existiam no banco ficaram de fora, para não haver duplicados. As restantes 34, mais 2 que só apareceram no cruzamento, foram revistas uma a uma. A folha tinha um erro de transcrição (Database View), e em 5 questões a folha e a revisão do Vitor discordavam. Em 4 ficou a resposta confirmada na documentação oficial (Additional actions e papéis do Table Builder, formatters) ou a explicação do Vitor (application menu: Configuration > Applications muda um CI da CMDB, não o menu). Na quinta (que aplicações criam visualizações) ficou a resposta da folha, marcada como não confirmada.",
+    "Respostas não confirmadas: 4 questões (duas sobre visualizações de dados, o botão Run do Visualization Designer e a cifra que vem por omissão) não têm confirmação na documentação oficial. Mostram um aviso na nota da questão.",
+    "Estatísticas e ranking: o índice, a prontidão, a cobertura, o Progresso e o ranking contam só o banco Deloitte, para todos serem comparados sobre as mesmas questões. Simulados com questões ExamBase não entram no índice nem no ranking.",
+    "Simulado só com ExamBase: como o banco tem 36 questões, o simulado tem 36 questões em 54 minutos, o mesmo ritmo do exame real (1,5 minutos por questão).",
+    "Obrigado ao Rui e ao Vitor pela folha e pela revisão."],
+    en:[
+    "What changes: there are now two question banks. Deloitte is the course bank. ExamBase is 36 extra questions from a public practice site (exambase.com) that weren’t in our bank. In Practice, Build a session (including sudden death) and Practice exam you choose Deloitte, ExamBase or Both. Each question shows a tag with the bank it comes from.",
+    "Where they came from: Rui noticed the site had the same questions as us and made a sheet with 47 questions, new or with different answers. Vitor reviewed the answers and tested some on the instance. Then we crossed the site directly: 330 of its 408 questions were compared one by one with our bank, by the text of the question and the options.",
+    "What the comparison showed: 314 of the 330 questions are the same as ours, with the same answer. 10 weren’t in our bank and 6 had a different answer. The site uses practically the same bank as we do.",
+    "The 6 different answers, and our bank was wrong in none of them. Q36 (Basic Configuration UI16): the official docs list the date format, and «Form Header Size» doesn’t exist. Q248 (Knowledge): «Can Read» is about reading articles, not writing. Q390 (date and time format): the docs confirm User menu > Preferences > Language & Region. Q282 (Save button): Vitor confirmed on the instance there’s no Save-only option, so glide.ui.advanced stays. Q118 and Q235 are deprecated; Q235 had no answer in the bank and the site says Process Automation Designer, which matches our note.",
+    "How we picked the 36: the 13 questions from the sheet already in the bank were left out, so there are no duplicates. The other 34, plus 2 that only showed up in the comparison, were reviewed one by one. The sheet had a transcription error (Database View), and in 5 questions the sheet and Vitor’s review disagreed. In 4 we kept the answer confirmed in the official docs (Table Builder Additional actions and roles, formatters) or Vitor’s explanation (application menu: Configuration > Applications changes a CMDB CI, not the menu). In the fifth (which applications create visualizations) we kept the sheet’s answer, marked as unconfirmed.",
+    "Unconfirmed answers: 4 questions (two on data visualizations, the Visualization Designer Run button and the encryption that comes by default) have no confirmation in the official docs. They show a warning in the question’s note.",
+    "Stats and ranking: the index, readiness, coverage, Progress and the ranking count the Deloitte bank only, so everyone is compared on the same questions. Practice exams with ExamBase questions don’t count towards the index or the ranking.",
+    "ExamBase-only practice exam: since the bank has 36 questions, the exam has 36 questions in 54 minutes, the real exam’s pace (1.5 minutes per question).",
+    "Thanks to Rui and Vitor for the sheet and the review."]},
   {d:"2026-11-24",t:["Ranking mais justo","A fairer ranking"],pt:[
     "O que muda: o ranking passa a ordenar por pontos, de 0 a 100. Pontos = 60% prontidão + 40% média dos últimos 3 simulados. A nova coluna «Pontos» aparece em primeiro lugar.",
     "Porquê: até agora a ordem seguia o índice de confiança. Esse índice mede o acerto e a retenção só nas questões que cada pessoa já viu. Assim, quem tinha visto menos do banco podia ficar à frente de quem viu mais, tinha mais prontidão e melhores simulados.",
@@ -1549,7 +1590,7 @@ function vMontar(){
   var st=[["all",TL("Todas","All")],["new",TL("Só novas","New only")],["wrong",TL("Só as que errei","Only the ones I got wrong")],["due",TL("Só revisões de hoje","Only today’s reviews")],["guess",TL("Só as que acertei por palpite","Only the ones I got right by guessing")],["seen",TL("Só as já vistas","Only the ones already seen")]].map(function(x){return '<option value="'+x[0]+'"'+(m.st===x[0]?" selected":"")+">"+x[1]+"</option>";}).join("");
   var dsc=m.d&&T&&T.domains[m.d]?'<p class="small muted" style="margin:-6px 0 16px">'+esc(T.domains[m.d].o)+"</p>":"";
   return TL('<div class="vh"><div><h1>Montar sessão</h1><p>Escolhe o que estudar, quantas questões e o formato. O tempo de referência segue o ritmo do exame real.</p></div></div><div class="build">','<div class="vh"><div><h1>Build a session</h1><p>Choose what to study, how many questions and the format. The reference time follows the real exam’s pace.</p></div></div><div class="build">')+
-    '<section class="panel">'+
+    '<section class="panel">'+bankFieldHTML("mk")+
     TL('<div class="field"><span>Formato</span><div class="seg fmtseg" role="group" aria-label="Formato"><button data-act="mkfmt" data-v="t" aria-pressed="','<div class="field"><span>Format</span><div class="seg fmtseg" role="group" aria-label="Format"><button data-act="mkfmt" data-v="t" aria-pressed="')+(m.fmt==="t")+TL('">Treino com respostas</button><button data-act="mkfmt" data-v="x" aria-pressed="','">Practice with answers</button><button data-act="mkfmt" data-v="x" aria-pressed="')+(m.fmt==="x")+TL('">Cronometrado, tipo exame</button>','">Timed, exam-style</button>')+'<button data-act="mkfmt" data-v="d" aria-pressed="'+(m.fmt==="d")+'">'+TL("Morte súbita","Sudden death")+"</button></div></div>"+
     (m.fmt==="d"?'<p class="mk-death">'+TL("Na morte súbita entram todas as ","Sudden death uses all ")+pool().length+TL(" questões do banco, por ordem aleatória, sem filtros. O desafio só acaba quando chegares ao fim do banco ou ao "," questions in the bank, in random order, with no filters. The challenge only ends when you reach the end of the bank or at mistake ")+DEATH_MAX+TL(".º erro.",".")+"</p>":(
     TL('<label class="field" for="mkD"><span>Domínio do blueprint</span><select id="mkD" data-act="mk" data-k="d">','<label class="field" for="mkD"><span>Blueprint domain</span><select id="mkD" data-act="mk" data-k="d">')+dopts+"</select></label>"+dsc+
@@ -1660,6 +1701,7 @@ document.addEventListener("click",function(ev){
     case "rktab":(ui.rk||(ui.rk={tab:"bad",d:""})).tab=v;render();break;
     case "rktrain":var rl=Array.prototype.map.call(document.querySelectorAll("details.rk .qid"),function(x){return x.textContent;});var rids=pool(false).filter(function(q){return rl.indexOf(q.label||("Question "+q.id))>=0;}).map(function(q){return q.id;});startSession("rank",TL("Ranking: mais erradas","Ranking: most missed"),shuffle(rids));break;
     case "mkfmt":mkState().fmt=v;render();break;
+    case "bank":S.cfg.bank=v;saveLocal();render();break;
     case "mkgo":mkGo();break;
     case "examclear":S.cfg.examDate="";S.cfg.exT=Date.now();ui.smartCache=null;markDirty("p");render();break;
     case "applynpd":S.cfg.newPerDay=+v;ui.smartCache=null;saveLocal();render();toast(TL("Agora entram ","Now ")+v+TL(" questões novas por dia."," new questions come in per day."));break;
